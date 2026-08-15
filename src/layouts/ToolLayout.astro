@@ -1,0 +1,114 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  keywords?: string;
+  toolName: string;
+  toolIcon?: string;
+  ogImage?: string;
+}
+
+const { title, description, keywords, toolName, toolIcon = '🛠️', ogImage = '/og-default.png' } = Astro.props;
+
+// Schema.org WebApplication structured data (see BaseLayout note on set:html).
+const toolData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: title,
+  description: description,
+  url: new URL(Astro.url.pathname, Astro.site).toString(),
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Any",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  browserRequirements: "Requires JavaScript",
+  featureList: keywords || "",
+  author: { "@type": "Organization", name: "DevToolbox" }
+};
+---
+
+<BaseLayout title={title} description={description} keywords={keywords} ogImage={ogImage}>
+  <!-- Skip Navigation Link (WCAG 2.4.1 Bypass Blocks) -->
+  <a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none"
+  >
+    Skip to main content
+  </a>
+
+  <div class="min-h-full flex flex-col">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700" role="banner">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <a href="/" class="text-xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800 rounded">
+              DevToolbox
+            </a>
+            <nav class="hidden md:flex items-center space-x-1" aria-label="Breadcrumb">
+              <span class="text-gray-400" aria-hidden="true">/</span>
+              <span class="text-gray-600 dark:text-gray-400">{toolName}</span>
+            </nav>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <!-- Command Palette Trigger -->
+            <button
+              id="command-palette-btn"
+              class="hidden md:flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800"
+              aria-label="Open command palette"
+            >
+              <span>Search tools</span>
+              <kbd class="inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded">
+                ⌘K
+              </kbd>
+            </button>
+
+            <!-- Theme Toggle -->
+            <ThemeToggle />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Schema.org Structured Data (WebApplication) -->
+    <script type="application/ld+json" set:html={JSON.stringify(toolData)}></script>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
+      <!-- Tool Header -->
+      <div class="mb-8">
+        <div class="flex items-center space-x-3 mb-4">
+          <span class="text-3xl" aria-hidden="true">{toolIcon}</span>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
+        </div>
+        <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl">{description}</p>
+      </div>
+
+      <!-- Tool Content -->
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700" role="contentinfo">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-gray-500 dark:text-gray-400">
+          <div class="flex items-center space-x-4 mb-4 md:mb-0">
+            <span>© 2026 DevToolbox</span>
+            <span class="inline-flex items-center space-x-1">
+              <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+              <span>100% Privacy-First</span>
+            </span>
+          </div>
+          <div class="text-xs">
+            All data processing occurs locally in your browser. No data is sent to external servers.
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+</BaseLayout>

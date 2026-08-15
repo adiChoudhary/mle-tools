@@ -1,0 +1,36 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="URL Encoder/Decoder & MongoDB ObjectId Decoder"
+  description="Encode and decode URL parameters and query strings. Parse URL query parameters into tables. Validate and decode MongoDB ObjectIds to extract timestamps and components."
+  toolName="URL Encoder"
+  toolIcon="🔗"
+  keywords="URL encoder, URL decoder, query string encoder, URL parameter parser, MongoDB ObjectId decoder, developer tools"
+>
+  <div id="url-encoder-tool" data-tool="url-encoder"></div>
+
+  <script>
+    import { UrlEncoder } from '../../components/tools/UrlEncoder.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('url-encoder-tool');
+      if (element) {
+        const encoder = new UrlEncoder(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          encoder.init();
+          element._componentInstance = encoder;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('url-encoder-tool');
+      if (element && element._componentInstance) element._componentInstance.destroy();
+    });
+  </script>
+</ToolLayout>

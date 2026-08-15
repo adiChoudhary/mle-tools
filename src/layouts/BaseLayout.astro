@@ -1,0 +1,131 @@
+---
+import '../styles/global.css';
+import CommandPalette from '../components/CommandPalette.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  keywords?: string;
+  ogImage?: string;
+}
+
+const {
+  title,
+  description,
+  keywords = 'developer tools, JSON formatter, Base64 encoder, JWT decoder, privacy-first',
+  ogImage = '/og-default.png'
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Schema.org WebSite structured data (rendered via set:html — define:vars wraps an
+// ld+json script in an executable IIFE and breaks the JSON output).
+const siteData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "DevToolbox",
+  url: Astro.site,
+  description: "Privacy-first developer utilities that process all data locally in your browser.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${Astro.site}/tools?q={search_term_string}`,
+    "query-input": "required name=search_term_string"
+  }
+};
+
+// Shared tool list for command palette
+const tools = [
+  { name: 'JSON Formatter', path: '/tools/json-formatter', icon: '📄', description: 'Format, validate, and compare JSON data' },
+  { name: 'Base64 Encoder', path: '/tools/base64-encoder', icon: '🔤', description: 'Encode and decode Base64 strings' },
+  { name: 'JWT Decoder', path: '/tools/jwt-decoder', icon: '🔑', description: 'Decode and validate JSON Web Tokens' },
+  { name: 'URL Encoder', path: '/tools/url-encoder', icon: '🔗', description: 'Encode and decode URL parameters' },
+  { name: 'Hash Generator', path: '/tools/hash-generator', icon: '🔐', description: 'Generate MD5, SHA-1, SHA-256, SHA-512 hashes' },
+  { name: 'Timestamp Converter', path: '/tools/timestamp-converter', icon: '⏰', description: 'Convert between timestamp formats' },
+  { name: 'Data Converter', path: '/tools/data-converter', icon: '🔄', description: 'Convert between CSV, JSON, and YAML' },
+  { name: 'Regex Tester', path: '/tools/regex-and-sample-data', icon: '🎯', description: 'Test regular expressions with real-time matching' },
+  { name: 'Sample Data Generator', path: '/tools/regex-and-sample-data', icon: '📊', description: 'Generate mock JSON, CSV, and SQL data' },
+  { name: 'Crypto Tool', path: '/tools/crypto', icon: '🛡️', description: 'AES-GCM and RSA encryption and decryption' },
+  { name: 'Crontab Evaluator', path: '/tools/crontab-evaluator', icon: '⏱️', description: 'Validate and evaluate cron expressions' },
+  { name: 'Data Measurement', path: '/tools/data-measurement', icon: '📐', description: 'Convert data sizes and transfer rates' },
+];
+---
+
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <!-- Essential Meta -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- SEO Meta -->
+    <title>{title} | DevToolbox</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DevToolbox" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={`${title} | DevToolbox`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@devtoolbox" />
+    <meta name="twitter:creator" content="@devtoolbox" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={`${title} | DevToolbox`} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(ogImage, Astro.site)} />
+    <meta name="twitter:image:alt" content={title} />
+
+    <!-- Preload critical resources (none — fully self-hosted, zero external requests) -->
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Content Security Policy is emitted automatically by Astro (security.csp
+         in astro.config.mjs) with sha256 hashes for every bundled script/style.
+         The theme bootstrap below is the only inline script; its hash is pinned
+         in astro.config.mjs (security.csp.scriptDirective.hashes). -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('devtoolbox-theme');
+          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- Schema.org Structured Data (WebSite) -->
+    <script type="application/ld+json" set:html={JSON.stringify(siteData)}></script>
+  </head>
+  <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <!-- Skip to main content link for screen readers -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50">Skip to main content</a>
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <!-- Command Palette -->
+    <CommandPalette tools={tools} />
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function (err) {
+            console.debug('Service Worker registration failed:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

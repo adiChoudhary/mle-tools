@@ -1,0 +1,36 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="Timestamp Converter - Unix Epoch to Date/Time"
+  description="Convert between Unix Epoch timestamps (seconds/milliseconds) and human-readable dates. Bidirectional conversion with ISO 8601, RFC 2822, and timezone-aware local/UTC display."
+  toolName="Timestamp Converter"
+  toolIcon="⏰"
+  keywords="timestamp converter, unix epoch, epoch to date, date to epoch, unix time, ISO 8601, developer tools"
+>
+  <div id="timestamp-converter-tool" data-tool="timestamp-converter"></div>
+
+  <script>
+    import { TimestampConverter } from '../../components/tools/TimestampConverter.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('timestamp-converter-tool');
+      if (element) {
+        const converter = new TimestampConverter(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          converter.init();
+          element._componentInstance = converter;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('timestamp-converter-tool');
+      if (element && element._componentInstance) element._componentInstance.destroy();
+    });
+  </script>
+</ToolLayout>

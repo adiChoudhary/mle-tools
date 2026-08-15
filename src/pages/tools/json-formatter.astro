@@ -1,0 +1,48 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="JSON Formatter"
+  description="Format, validate, and beautify JSON data with syntax highlighting and error detection. All processing happens locally in your browser."
+  toolName="JSON Formatter"
+  toolIcon="📄"
+  keywords="JSON formatter, JSON validator, JSON beautifier, JSON minifier, developer tools"
+>
+  <!-- JSON Formatter Tool Island -->
+  <div id="json-formatter-tool" data-tool="json-formatter">
+    <!-- Component will hydrate here -->
+  </div>
+
+  <!-- Island Hydration Script -->
+  <script>
+    import { JsonFormatter } from '../../components/tools/JsonFormatter.js';
+
+    // Hydrate the component when DOM is ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('json-formatter-tool');
+      if (element) {
+        try {
+          const formatter = new JsonFormatter(element);
+          await formatter.init();
+          element._componentInstance = formatter;
+        } catch (error) {
+          console.error('[JSON Formatter] Failed to initialize:', error);
+          element.innerHTML = `
+            <div class="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 my-4" role="alert">
+              <h3 class="text-lg font-semibold text-red-800 dark:text-red-200">Something went wrong</h3>
+              <p class="mt-1 text-sm text-red-700 dark:text-red-300">Failed to load JSON Formatter. Please refresh the page.</p>
+            </div>`;
+        }
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('json-formatter-tool');
+      if (element && element._componentInstance) {
+        element._componentInstance.destroy();
+      }
+    });
+  </script>
+</ToolLayout>

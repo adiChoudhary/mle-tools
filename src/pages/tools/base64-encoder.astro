@@ -1,0 +1,36 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="Base64 Encoder/Decoder"
+  description="Encode and decode Base64 strings and files. Supports standard and URL-safe Base64 encoding with binary data handling. All processing happens locally in your browser."
+  toolName="Base64 Encoder"
+  toolIcon="🔤"
+  keywords="Base64 encoder, Base64 decoder, base64 converter, URL-safe base64, developer tools"
+>
+  <div id="base64-encoder-tool" data-tool="base64-encoder"></div>
+
+  <script>
+    import { Base64Encoder } from '../../components/tools/Base64Encoder.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('base64-encoder-tool');
+      if (element) {
+        const encoder = new Base64Encoder(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          await encoder.init();
+          element._componentInstance = encoder;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('base64-encoder-tool');
+      if (element && element._componentInstance) element._componentInstance.destroy();
+    });
+  </script>
+</ToolLayout>

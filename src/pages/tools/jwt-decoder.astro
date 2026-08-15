@@ -1,0 +1,42 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="JWT Decoder"
+  description="Decode and validate JSON Web Tokens (JWT) with signature verification support for HMAC, RSA, and ECDSA algorithms. Check expiration, inspect claims, and get security recommendations."
+  toolName="JWT Decoder"
+  toolIcon="🔑"
+  keywords="JWT decoder, JSON Web Token, JWT validator, token decoder, HMAC verification, developer tools"
+>
+  <!-- JWT Decoder Tool Island -->
+  <div id="jwt-decoder-tool" data-tool="jwt-decoder">
+    <!-- Component will hydrate here -->
+  </div>
+
+  <!-- Island Hydration Script with Error Boundary -->
+  <script>
+    import { JwtDecoder } from '../../components/tools/JwtDecoder.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('jwt-decoder-tool');
+      if (element) {
+        const decoder = new JwtDecoder(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          await decoder.init();
+          element._componentInstance = decoder;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('jwt-decoder-tool');
+      if (element && element._componentInstance) {
+        element._componentInstance.destroy();
+      }
+    });
+  </script>
+</ToolLayout>

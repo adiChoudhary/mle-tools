@@ -1,0 +1,42 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="CSV, JSON, and YAML Converter"
+  description="Convert between CSV, JSON, and YAML formats with bidirectional conversion. Handles escaped commas, special characters, custom delimiters, and auto-detection. All processing happens locally in your browser."
+  toolName="Data Converter"
+  toolIcon="🔄"
+  keywords="CSV to JSON, JSON to CSV, JSON to YAML, YAML to JSON, data converter, format converter, developer tools"
+>
+  <!-- Data Converter Tool Island -->
+  <div id="data-converter-tool" data-tool="data-converter">
+    <!-- Component will hydrate here -->
+  </div>
+
+  <!-- Island Hydration Script with Error Boundary -->
+  <script>
+    import { DataConverter } from '../../components/tools/DataConverter.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('data-converter-tool');
+      if (element) {
+        const converter = new DataConverter(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          await converter.init();
+          element._componentInstance = converter;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('data-converter-tool');
+      if (element && element._componentInstance) {
+        element._componentInstance.destroy();
+      }
+    });
+  </script>
+</ToolLayout>

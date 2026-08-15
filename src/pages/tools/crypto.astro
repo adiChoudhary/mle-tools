@@ -1,0 +1,36 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="Crypto & Encryption Tool - AES-GCM and RSA"
+  description="Encrypt and decrypt data using AES-GCM and RSA-OAEP algorithms. Generate keys, export keys, and manage IVs. All cryptographic operations happen locally in your browser using the Web Crypto API."
+  toolName="Crypto Tool"
+  toolIcon="🛡️"
+  keywords="encryption, decryption, AES-GCM, RSA-OAEP, crypto, Web Crypto API, key generation, developer tools"
+>
+  <div id="crypto-tool" data-tool="crypto"></div>
+
+  <script>
+    import { CryptoTool } from '../../components/tools/CryptoTool.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('crypto-tool');
+      if (element) {
+        const tool = new CryptoTool(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          tool.init();
+          element._componentInstance = tool;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('crypto-tool');
+      if (element && element._componentInstance) element._componentInstance.destroy();
+    });
+  </script>
+</ToolLayout>

@@ -1,0 +1,73 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="Regex Tester & Sample Data Generator"
+  description="Test regular expressions with real-time match highlighting and pre-loaded common patterns. Generate realistic sample data in JSON, CSV, or SQL format."
+  toolName="Regex & Sample Data"
+  toolIcon="🔍"
+  keywords="regex tester, regular expression, sample data generator, JSON sample, CSV mock data, SQL INSERT generator, developer tools"
+>
+  <div id="regex-sample-tool" data-tool="regex-sample"></div>
+
+  <script>
+    import { RegexTester } from '../../components/tools/RegexTester.js';
+    import { SampleDataGenerator } from '../../components/tools/SampleDataGenerator.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const container = document.getElementById('regex-sample-tool');
+      if (!container) return;
+
+      // Tab wrapper
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+        <div class="mb-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1 inline-flex">
+          <button id="tab-regex" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white" data-tab="regex">Regex Tester</button>
+          <button id="tab-sample" class="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="sample">Sample Data Generator</button>
+        </div>
+        <div id="panel-regex"></div>
+        <div id="panel-sample" class="hidden"></div>
+      `;
+      container.innerHTML = '';
+      container.appendChild(wrapper);
+
+      // Init components with error boundary
+      const regexPanel = container.querySelector('#panel-regex');
+      const samplePanel = container.querySelector('#panel-sample');
+
+      const regexTool = new RegexTester(regexPanel);
+      const sampleTool = new SampleDataGenerator(samplePanel);
+
+      const boundary = new ErrorBoundary(container, async () => {
+        regexTool.init();
+        sampleTool.init();
+      });
+      await boundary.run();
+      boundary.attachGlobalHandler();
+
+      // Tab switching
+      wrapper.querySelectorAll('[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          wrapper.querySelectorAll('[data-tab]').forEach(b => {
+            const active = b.dataset.tab === btn.dataset.tab;
+            b.className = `px-4 py-2 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+          });
+          regexPanel.classList.toggle('hidden', btn.dataset.tab !== 'regex');
+          samplePanel.classList.toggle('hidden', btn.dataset.tab !== 'sample');
+        });
+      });
+
+      container._componentInstance = { regexTool, sampleTool };
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const container = document.getElementById('regex-sample-tool');
+      if (container && container._componentInstance) {
+        container._componentInstance.regexTool.destroy();
+        container._componentInstance.sampleTool.destroy();
+      }
+    });
+  </script>
+</ToolLayout>

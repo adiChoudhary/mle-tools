@@ -1,0 +1,36 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="Crontab Expression Evaluator"
+  description="Validate cron expressions, get human-readable translations, and see the next 5 execution times in your local timezone. Supports 5-field and 6-field cron syntax."
+  toolName="Crontab Evaluator"
+  toolIcon="⏱️"
+  keywords="cron expression, crontab validator, cron parser, schedule evaluator, cron next execution, developer tools"
+>
+  <div id="crontab-evaluator-tool" data-tool="crontab-evaluator"></div>
+
+  <script>
+    import { CrontabEvaluator } from '../../components/tools/CrontabEvaluator.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('crontab-evaluator-tool');
+      if (element) {
+        const evaluator = new CrontabEvaluator(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          evaluator.init();
+          element._componentInstance = evaluator;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('crontab-evaluator-tool');
+      if (element && element._componentInstance) element._componentInstance.destroy();
+    });
+  </script>
+</ToolLayout>

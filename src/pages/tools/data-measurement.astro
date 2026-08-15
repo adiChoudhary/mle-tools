@@ -1,0 +1,36 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+---
+
+<ToolLayout
+  title="Data Size & Transfer Rate Converter"
+  description="Convert between data size units (bytes to petabytes, decimal KB/MB vs binary KiB/MiB). Convert transfer rates (bps, Kbps, Mbps, Gbps) with download time estimator."
+  toolName="Data Converter"
+  toolIcon="📐"
+  keywords="data size converter, bytes to MB, binary vs decimal, KiB MiB GiB, transfer rate, Mbps Gbps, download time calculator, developer tools"
+>
+  <div id="data-measurement-tool" data-tool="data-measurement"></div>
+
+  <script>
+    import { DataMeasurementConverter } from '../../components/tools/DataMeasurementConverter.js';
+    import { ErrorBoundary } from "../../utils/error-boundary.ts";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const element = document.getElementById('data-measurement-tool');
+      if (element) {
+        const tool = new DataMeasurementConverter(element);
+        const boundary = new ErrorBoundary(element, async () => {
+          tool.init();
+          element._componentInstance = tool;
+        });
+        await boundary.run();
+        boundary.attachGlobalHandler();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      const element = document.getElementById('data-measurement-tool');
+      if (element && element._componentInstance) element._componentInstance.destroy();
+    });
+  </script>
+</ToolLayout>
