@@ -4,13 +4,15 @@
  */
 
 import { WorkerOperation } from "../../utils/worker-interface.ts";
-import { WorkerPool } from "../../utils/worker-pool.ts";
+import { WorkerPool, withTimeout } from "../../utils/worker-pool.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
+import DataProcessorWorkerUrl from "../../workers/data-processor.ts?worker&url";
 
 export class DataConverter {
   constructor(element) {
     this.element = element;
-    this.workerPool = new WorkerPool();
+    this.workerPool = new WorkerPool(DataProcessorWorkerUrl);
     this.maxMemoryMB = 50;
 
     // DOM elements
@@ -579,36 +581,14 @@ export class DataConverter {
   }
 
   async processWithWorker(operation, input) {
-    return new Promise((resolve, reject) => {
-      const worker = this.workerPool.getWorker();
-      const operationId = `data_${Date.now()}`;
-
-      const timeout = setTimeout(() => {
-        reject(new Error('Conversion timed out. Try with smaller data.'));
-      }, 30000);
-
-      const messageHandler = (event) => {
-        if (event.data.id === operationId) {
-          worker.removeEventListener('message', messageHandler);
-          clearTimeout(timeout);
-
-          if (event.data.type === 'progress' && event.data.progress) {
-            this.processingMessage.textContent = event.data.progress.message || 'Converting...';
-          } else if (event.data.success || event.data.type === 'result') {
-            resolve(event.data.result || event.data.payload);
-          } else {
-            reject(new Error(event.data.error || 'Conversion failed'));
-          }
-        }
-      };
-
-      worker.addEventListener('message', messageHandler);
-      worker.postMessage({
-        id: operationId,
-        operation,
-        input,
-      });
-    });
+    // The worker pool speaks {id, type:'process', payload:{operation, input}}
+    // and answers {id, type:'result'|'error', payload} — see worker-pool.ts.
+    const result = await withTimeout(
+      this.workerPool.processTask(operation, input),
+      30000,
+      'Conversion timed out. Try with smaller data.'
+    );
+    return result;
   }
 
   processSync(operation, data, options) {
@@ -765,9 +745,7 @@ address:
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {

@@ -41,16 +41,20 @@ function generatePhone() {
   return `+1 (${rand(200, 999)}) ${rand(200, 999)}-${rand(1000, 9999)}`;
 }
 
-function generateAvatarUrl(seed) {
-  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}`;
+function generateAvatarUrl(id) {
+  // Local placeholder only — generated mock data must never reference
+  // external services (privacy promise: zero external requests). Users
+  // swap these for their own asset URLs in real pipelines.
+  return `avatar_${id}.png`;
 }
 
 function generateRecord(index) {
+  const id = generateId();
   const first = randItem(FIRST_NAMES);
   const last = randItem(LAST_NAMES);
   const name = `${first} ${last}`;
   return {
-    id: generateId(),
+    id,
     name,
     firstName: first,
     lastName: last,
@@ -69,7 +73,7 @@ function generateRecord(index) {
     salary: rand(30000, 250000),
     isActive: Math.random() > 0.3,
     createdAt: generateDate(),
-    avatar: generateAvatarUrl(name),
+    avatar: generateAvatarUrl(id),
   };
 }
 

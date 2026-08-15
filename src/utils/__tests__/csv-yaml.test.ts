@@ -17,8 +17,8 @@ describe('csvToJson', () => {
 
     const parsed = JSON.parse(result.result);
     expect(parsed).toHaveLength(2);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30, city: 'New York' });
-    expect(parsed[1]).toEqual({ name: 'Bob', age: 25, city: 'London' });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30', city: 'New York' });
+    expect(parsed[1]).toEqual({ name: 'Bob', age: '25', city: 'London' });
     expect(result.rowCount).toBe(2);
     expect(result.columnCount).toBe(3);
   });
@@ -44,7 +44,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv, { delimiter: ';' });
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30, city: 'New York' });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30', city: 'New York' });
   });
 
   it('handles custom delimiter (tab)', () => {
@@ -52,7 +52,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv, { delimiter: '\t' });
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30, city: 'New York' });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30', city: 'New York' });
   });
 
   it('handles custom delimiter (pipe)', () => {
@@ -60,7 +60,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv, { delimiter: '|' });
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30, city: 'New York' });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30', city: 'New York' });
   });
 
   it('auto-detects semicolon delimiter', () => {
@@ -68,7 +68,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv);
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30 });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30' });
   });
 
   it('auto-detects tab delimiter', () => {
@@ -76,7 +76,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv);
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30 });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30' });
   });
 
   it('auto-detects pipe delimiter', () => {
@@ -84,7 +84,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv);
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30 });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30' });
   });
 
   it('uses custom headers when provided', () => {
@@ -95,7 +95,7 @@ describe('csvToJson', () => {
 
     const parsed = JSON.parse(result.result);
     expect(parsed).toHaveLength(2);
-    expect(parsed[0]).toEqual({ name: 'Alice', age: 30, city: 'New York' });
+    expect(parsed[0]).toEqual({ name: 'Alice', age: '30', city: 'New York' });
   });
 
   it('skips empty lines by default', () => {
@@ -114,15 +114,18 @@ describe('csvToJson', () => {
     expect(parsed[0].bio).toBe('Line 1\nLine 2');
   });
 
-  it('converts numeric values with dynamicTyping', () => {
-    const csv = 'name,score,ratio\nAlice,100,0.95';
+  it('preserves values as strings (no silent type coercion)', () => {
+    const csv = 'name,score,ratio,code,flag\nAlice,100,0.95,007,true';
     const result = csvToJson(csv);
 
     const parsed = JSON.parse(result.result);
-    expect(typeof parsed[0].score).toBe('number');
-    expect(typeof parsed[0].ratio).toBe('number');
-    expect(parsed[0].score).toBe(100);
-    expect(parsed[0].ratio).toBe(0.95);
+    // A converter must not coerce: leading zeros, booleans and numbers
+    // all stay exactly as the user typed them.
+    expect(typeof parsed[0].score).toBe('string');
+    expect(parsed[0].score).toBe('100');
+    expect(parsed[0].ratio).toBe('0.95');
+    expect(parsed[0].code).toBe('007');
+    expect(parsed[0].flag).toBe('true');
   });
 
   it('returns metadata with headers', () => {
@@ -138,7 +141,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv);
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0]).toEqual({ a: 1, b: 2, column_2: 3, column_3: 4 });
+    expect(parsed[0]).toEqual({ a: '1', b: '2', column_2: '3', column_3: '4' });
   });
 
   it('handles rows with fewer columns than headers', () => {
@@ -146,7 +149,7 @@ describe('csvToJson', () => {
     const result = csvToJson(csv);
 
     const parsed = JSON.parse(result.result);
-    expect(parsed[0].a).toBe(1);
+    expect(parsed[0].a).toBe('1');
     expect(parsed[0].b).toBeUndefined();
     expect(parsed[0].c).toBeUndefined();
   });
@@ -515,8 +518,8 @@ describe('edge cases', () => {
     const result = csvToJson(csv);
     const parsed = JSON.parse(result.result);
 
-    // dynamicTyping converts empty to null; PapaParse sets undefined for missing fields
-    expect(parsed[0].age).toBeNull();
-    expect(parsed[1].city).toBeNull();
+    // Values are preserved as strings; empty fields stay empty strings
+    expect(parsed[0].age).toBe('');
+    expect(parsed[1].city).toBe('');
   });
 });

@@ -51,7 +51,8 @@ export function csvToJson(csv: string, options: CsvOptions = {}): ConversionResu
     skipEmptyLines: options.skipEmptyLines ?? true,
     cleanBlankLines: true,
     transformHeader: (h) => h.trim(),
-    dynamicTyping: true, // auto-convert numbers, booleans, nulls
+    // No dynamicTyping: a converter must not silently coerce values
+    // ("007" -> 7, "true" -> true). All CSV values stay strings.
   });
 
   if (result.errors.length && result.data.length === 0) {
@@ -132,7 +133,7 @@ export function jsonToCsv(jsonInput: string, options: CsvOptions = {}): Conversi
 
   // Convert to CSV using Papa
   const csv = Papa.unparse(data, {
-    header: !!options.delimiter || true, // always include headers
+    header: true, // always include headers
     columns: allKeys,
     delimiter: options.delimiter ?? ',',
   });

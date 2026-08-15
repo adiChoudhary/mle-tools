@@ -14,14 +14,12 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
-    // Enable source maps for debugging
-    build: {
-      sourcemap: true,
+    // Workers are emitted as ES modules so `new Worker(url, { type: 'module' })`
+    // (used by worker-pool.ts) matches the built format and stays within
+    // `worker-src 'self'` (the worker is a regular /_astro/ asset).
+    worker: {
+      format: 'es',
     },
-    // Optimize for performance
-    ssr: {
-      noExternal: ['uuid', 'js-yaml', 'papaparse', 'jose']
-    }
   },
   // SEO and Performance optimizations
   site: 'https://devtoolbox.dev', // Replace with actual domain

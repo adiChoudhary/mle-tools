@@ -5,6 +5,7 @@
 
 import { generateHash } from "../../utils/crypto.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
 
 export class HashGenerator {
   constructor(element) {
@@ -188,20 +189,22 @@ export class HashGenerator {
     }
 
     let html = '';
-    const colors = {
-      'MD5': 'amber',
-      'SHA-1': 'yellow',
-      'SHA-256': 'green',
-      'SHA-512': 'emerald',
+    // Static class names (Tailwind's JIT scanner cannot see concatenated
+    // class strings like `bg-${color}-500` — they would get no CSS emitted).
+    const dotColors = {
+      'MD5': 'bg-amber-500',
+      'SHA-1': 'bg-yellow-500',
+      'SHA-256': 'bg-green-500',
+      'SHA-512': 'bg-emerald-500',
     };
 
     for (const [alg, hash] of Object.entries(hashes)) {
-      const color = colors[alg] || 'blue';
+      const color = dotColors[alg] || 'bg-blue-500';
       html += `
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-2">
-              <span class="inline-block w-2 h-2 rounded-full bg-${color}-500"></span>
+              <span class="inline-block w-2 h-2 rounded-full ${color}"></span>
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">${alg}</h4>
               <span class="text-xs text-gray-500 dark:text-gray-400">${alg === 'MD5' ? '128-bit' : alg === 'SHA-1' ? '160-bit' : alg === 'SHA-256' ? '256-bit' : '512-bit'}</span>
             </div>
@@ -276,9 +279,7 @@ export class HashGenerator {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {

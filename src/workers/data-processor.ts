@@ -1,44 +1,67 @@
 /**
  * Generic data processing worker
- * Handles JSON, CSV, YAML operations and other data transformations
+ * Handles JSON, CSV, YAML, Base64 and hash operations off the main thread.
+ *
+ * Bundled by Vite via `?worker&url` (module worker). Dependencies are
+ * statically imported so the worker is a single self-contained bundle
+ * (no dynamic chunk loading — keeps CSP `worker-src 'self'` simple).
+ *
+ * Message protocol (see WorkerPool.processTask):
+ *   in:  { id, type: 'process', payload: { operation, input } }
+ *   out: { id, type: 'result' | 'error', payload | error }
  */
 
-import type { EnhancedWorkerMessage, WorkerOperation, WorkerProgress } from '../utils/worker-interface';
+import Papa from 'papaparse';
+import * as yaml from 'js-yaml';
+import { md5 } from '../utils/md5.ts';
+import { WorkerOperation } from '../utils/worker-interface.ts';
+import type { EnhancedWorkerMessage, WorkerProgress } from '../utils/worker-interface.ts';
 
-// Worker context
-const ctx = self as any;
+// Worker context (browser workers expose `self`)
+const ctx = self as unknown as DedicatedWorkerGlobalScope & Record<string, any>;
 
 /**
  * Send progress update to main thread
  */
 function reportProgress(id: string, progress: WorkerProgress): void {
-  ctx.postMessage({
-    id,
-    type: 'progress',
-    progress
-  });
+  ctx.postMessage({ id, type: 'progress', progress });
 }
 
 /**
  * Send success result to main thread
  */
 function sendResult<T>(id: string, result: T): void {
-  ctx.postMessage({
-    id,
-    type: 'result',
-    payload: result
-  });
+  ctx.postMessage({ id, type: 'result', payload: result });
 }
 
 /**
  * Send error to main thread
  */
 function sendError(id: string, error: string | Error): void {
-  ctx.postMessage({
-    id,
-    type: 'error',
-    error: error instanceof Error ? error.message : error
-  });
+  ctx.postMessage({ id, type: 'error', error: error instanceof Error ? error.message : error });
+}
+
+/**
+ * Base64-encode a byte array in chunks (spreading multi-MB arrays into
+ * String.fromCharCode overflows the call stack).
+ */
+function bytesToBase64(bytes: Uint8Array): string {
+  const CHUNK = 0x8000;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Base64-decode a string into bytes
+ */
+function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
 /**
@@ -50,50 +73,53 @@ async function processJSONOperation(id: string, operation: WorkerOperation, inpu
 
     reportProgress(id, { percentage: 20, message: 'Parsing input data' });
 
-    let result: any;
-    let isValid = true;
+    let parsed: unknown;
+    let error: string | undefined;
+    try {
+      parsed = JSON.parse(data);
+    } catch (e) {
+      error = (e as Error).message;
+    }
 
-    switch (operation) {
-      case WorkerOperation.JSON_PARSE:
-        try {
-          result = JSON.parse(data);
-          result = { result: JSON.stringify(result), isValid: true, size: data.length };
-        } catch (error) {
-          result = { result: '', isValid: false, error: (error as Error).message, size: data.length };
-        }
-        break;
-
-      case WorkerOperation.JSON_BEAUTIFY:
-        try {
-          const parsed = JSON.parse(data);
-          const indent = options.indent || 2;
-          result = JSON.stringify(parsed, null, indent);
-          result = { result, isValid: true, size: result.length };
-        } catch (error) {
-          result = { result: '', isValid: false, error: (error as Error).message, size: data.length };
-        }
-        break;
-
-      case WorkerOperation.JSON_MINIFY:
-        try {
-          const parsed = JSON.parse(data);
-          result = JSON.stringify(parsed);
-          result = { result, isValid: true, size: result.length };
-        } catch (error) {
-          result = { result: '', isValid: false, error: (error as Error).message, size: data.length };
-        }
-        break;
-
-      default:
-        throw new Error(`Unsupported JSON operation: ${operation}`);
+    let result: string;
+    let size: number;
+    if (error !== undefined) {
+      result = '';
+      size = 0;
+    } else if (operation === WorkerOperation.JSON_PARSE) {
+      // Mirror sync path: validate only, return input unchanged
+      result = data;
+      size = data.length;
+    } else if (operation === WorkerOperation.JSON_MINIFY) {
+      result = JSON.stringify(parsed);
+      size = result.length;
+    } else {
+      // JSON_BEAUTIFY: pretty-print
+      const indent = options.indent && options.indent !== '\t' ? options.indent : 2;
+      result = JSON.stringify(parsed, null, indent);
+      size = result.length;
     }
 
     reportProgress(id, { percentage: 90, message: 'Finalizing result' });
-    sendResult(id, result);
-
-  } catch (error) {
-    sendError(id, error as Error);
+    sendResult(id, { result, isValid: error === undefined, error, size });
+  } catch (e) {
+    sendError(id, e as Error);
   }
+}
+
+/**
+ * Auto-detect CSV delimiter (comma, semicolon, tab, pipe)
+ */
+function autoDetectDelimiter(csv: string): string {
+  const firstLine = csv.split('\n')[0];
+  const candidates = [
+    { char: ',', count: (firstLine.match(/,/g) || []).length },
+    { char: ';', count: (firstLine.match(/;/g) || []).length },
+    { char: '\t', count: (firstLine.match(/\t/g) || []).length },
+    { char: '|', count: (firstLine.match(/\|/g) || []).length },
+  ];
+  candidates.sort((a, b) => b.count - a.count);
+  return candidates[0].count > 0 ? candidates[0].char : ',';
 }
 
 /**
@@ -102,9 +128,6 @@ async function processJSONOperation(id: string, operation: WorkerOperation, inpu
 async function processCsvOperation(id: string, operation: WorkerOperation, input: any): Promise<void> {
   try {
     const { data, options = {} } = input;
-
-    // Dynamically import papaparse (available in worker via module type)
-    const Papa = await import('papaparse');
 
     reportProgress(id, { percentage: 20, message: 'Parsing input data' });
 
@@ -119,7 +142,6 @@ async function processCsvOperation(id: string, operation: WorkerOperation, input
           skipEmptyLines: options?.skipEmptyLines ?? true,
           cleanBlankLines: true,
           transformHeader: (h: string) => h.trim(),
-          dynamicTyping: true,
         });
 
         if (parsed.errors.length && parsed.data.length === 0) {
@@ -195,9 +217,6 @@ async function processYamlOperation(id: string, operation: WorkerOperation, inpu
   try {
     const { data, options = {} } = input;
 
-    // Dynamically import js-yaml
-    const yaml = await import('js-yaml');
-
     reportProgress(id, { percentage: 20, message: 'Parsing input data' });
 
     let result: any;
@@ -254,65 +273,54 @@ async function processYamlOperation(id: string, operation: WorkerOperation, inpu
 }
 
 /**
- * Auto-detect CSV delimiter
- */
-function autoDetectDelimiter(csv: string): string {
-  const firstLine = csv.split('\n')[0];
-  const candidates = [
-    { char: ',', count: (firstLine.match(/,/g) || []).length },
-    { char: ';', count: (firstLine.match(/;/g) || []).length },
-    { char: '\t', count: (firstLine.match(/\t/g) || []).length },
-    { char: '|', count: (firstLine.match(/\|/g) || []).length },
-  ];
-  candidates.sort((a, b) => b.count - a.count);
-  return candidates[0].count > 0 ? candidates[0].char : ',';
-}
-
-/**
  * Process Base64 operations
+ * input: string (standard variant) or { data: string, variant?: 'standard' | 'urlsafe' }
  */
-async function processBase64Operation(id: string, operation: WorkerOperation, input: string): Promise<void> {
+async function processBase64Operation(id: string, operation: WorkerOperation, input: any): Promise<void> {
   try {
+    const { data, variant = 'standard' } = typeof input === 'string' ? { data: input } : input;
+
     reportProgress(id, { percentage: 30, message: 'Processing Base64 operation' });
 
     let result: string;
 
     switch (operation) {
-      case WorkerOperation.BASE64_ENCODE:
-        // Handle both string and binary data
-        const encoder = new TextEncoder();
-        const data = encoder.encode(input);
-        result = btoa(String.fromCharCode(...data));
+      case WorkerOperation.BASE64_ENCODE: {
+        const encoded = bytesToBase64(new TextEncoder().encode(data));
+        result = variant === 'urlsafe'
+          ? encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+          : encoded;
         break;
+      }
 
-      case WorkerOperation.BASE64_DECODE:
-        try {
-          const decoded = atob(input);
-          const uint8Array = new Uint8Array(decoded.length);
-          for (let i = 0; i < decoded.length; i++) {
-            uint8Array[i] = decoded.charCodeAt(i);
-          }
-          const decoder = new TextDecoder();
-          result = decoder.decode(uint8Array);
-        } catch (error) {
-          throw new Error('Invalid Base64 input');
+      case WorkerOperation.BASE64_DECODE: {
+        let base64 = data;
+        if (variant === 'urlsafe') {
+          base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+          while (base64.length % 4) base64 += '=';
         }
+        const decoded = new TextDecoder().decode(base64ToBytes(base64));
+        result = decoded;
         break;
+      }
 
       default:
         throw new Error(`Unsupported Base64 operation: ${operation}`);
     }
 
     reportProgress(id, { percentage: 90, message: 'Encoding complete' });
-    sendResult(id, { result, originalLength: input.length, resultLength: result.length });
-
+    sendResult(id, { result, originalLength: data.length, resultLength: result.length });
   } catch (error) {
-    sendError(id, error as Error);
+    const msg = error instanceof Error ? error.message : String(error);
+    // atob() rejects malformed base64; TextDecoder rejects invalid UTF-8
+    const invalidInput = /Invalid character|atob|encoding/i.test(msg);
+    sendError(id, invalidInput ? new Error('Invalid Base64 input') : (error as Error));
   }
 }
 
 /**
- * Process hash generation
+ * Process hash generation.
+ * MD5 is not available in WebCrypto — use the local RFC 1321 implementation.
  */
 async function processHashOperation(id: string, input: any): Promise<void> {
   try {
@@ -320,31 +328,29 @@ async function processHashOperation(id: string, input: any): Promise<void> {
 
     reportProgress(id, { percentage: 20, message: `Generating ${algorithm} hash` });
 
-    // Convert input to ArrayBuffer
-    let buffer: ArrayBuffer;
-    if (typeof data === 'string') {
-      buffer = new TextEncoder().encode(data).buffer;
-    } else {
-      buffer = data;
-    }
+    const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
 
     reportProgress(id, { percentage: 50, message: 'Computing hash' });
 
-    // Use Web Crypto API for hashing
-    const hashBuffer = await crypto.subtle.digest(algorithm.replace('-', ''), buffer);
-    const hashArray = new Uint8Array(hashBuffer);
-    const hash = Array.from(hashArray)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    let hashHex: string;
+    if (algorithm === 'MD5') {
+      hashHex = md5(bytes);
+    } else {
+      // Canonical WebCrypto names ('SHA-1', 'SHA-256', 'SHA-512') — accepted
+      // by browsers and Node's webcrypto alike (no hyphen-stripping aliases).
+      const hashBuffer = await crypto.subtle.digest(algorithm, bytes.buffer);
+      hashHex = Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
 
     reportProgress(id, { percentage: 90, message: 'Hash computation complete' });
 
     sendResult(id, {
-      hash,
+      hash: hashHex,
       algorithm,
-      inputSize: buffer.byteLength
+      inputSize: bytes.length,
     });
-
   } catch (error) {
     sendError(id, error as Error);
   }
@@ -398,6 +404,3 @@ ctx.addEventListener('message', async (event: MessageEvent<EnhancedWorkerMessage
     sendError(id, error as Error);
   }
 });
-
-// Signal that worker is ready
-ctx.postMessage({ type: 'ready' });

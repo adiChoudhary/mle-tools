@@ -3,6 +3,8 @@
  * Real-time regex match highlighting with pre-loaded common patterns
  */
 
+import { escapeHtml } from "../../utils/escape-html.ts";
+
 export class RegexTester {
   constructor(element) {
     this.element = element;
@@ -268,9 +270,7 @@ export class RegexTester {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {}

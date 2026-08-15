@@ -4,6 +4,7 @@
  */
 
 import { validateCronExpression, cronToHuman, getNextExecutions, getCronExamples } from "../../utils/cron.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
 
 export class CrontabEvaluator {
   constructor(element) {
@@ -236,9 +237,7 @@ export class CrontabEvaluator {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {}

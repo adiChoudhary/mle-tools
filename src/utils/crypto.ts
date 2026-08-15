@@ -91,21 +91,6 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 /**
- * Converts hex string to ArrayBuffer
- */
-function hexToArrayBuffer(hex: string): ArrayBuffer {
-  if (hex.length % 2 !== 0) {
-    throw new CryptoError('Invalid hex string: length must be even');
-  }
-
-  const uint8Array = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    uint8Array[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-  }
-  return uint8Array.buffer;
-}
-
-/**
  * Generate cryptographic hash
  */
 export async function generateHash(

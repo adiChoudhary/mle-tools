@@ -5,12 +5,6 @@ export const MEMORY_LIMITS = {
   LOADING_DELAY: 500,                   // 500ms - delay before showing loading state
 } as const;
 
-// Security and privacy constants
-export const SECURITY = {
-  CSP_NONCE: crypto.randomUUID(),
-  WIPE_DATA_ON_UNLOAD: true,
-} as const;
-
 // Performance thresholds
 export const PERFORMANCE = {
   TARGET_LIGHTHOUSE_SCORE: 95,

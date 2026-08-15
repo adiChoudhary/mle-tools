@@ -85,25 +85,31 @@ describe('WorkerPool', () => {
   });
 
   describe('WorkerPool initialization', () => {
-    it('should create worker pool with correct number of workers', () => {
+    it('creates workers lazily on the first task (up to hardwareConcurrency)', async () => {
       workerPool = new WorkerPool(testWorkerScript);
-      const stats = workerPool.getStats();
+      expect(workerPool.getStats().totalWorkers).toBe(0); // nothing yet
 
+      await workerPool.processTask('op', { data: 'test' });
+
+      const stats = workerPool.getStats();
       expect(stats.totalWorkers).toBe(4); // hardwareConcurrency
       expect(stats.availableWorkers).toBe(4);
       expect(stats.activeTasks).toBe(0);
       expect(stats.queuedTasks).toBe(0);
     });
 
-    it('should handle worker script loading errors', () => {
+    it('rejects tasks with WorkerError when the worker script fails to load', async () => {
       // Mock Worker constructor to throw error
       const OriginalWorker = global.Worker;
       global.Worker = vi.fn().mockImplementation(() => {
         throw new Error('Failed to load script');
       });
 
-      expect(() => new WorkerPool(testWorkerScript)).toThrow(WorkerError);
-      expect(() => new WorkerPool(testWorkerScript)).toThrow('Failed to initialize worker pool');
+      const pool = new WorkerPool(testWorkerScript);
+      await expect(pool.processTask('op', { data: 'test' }))
+        .rejects.toThrow(WorkerError);
+      await expect(pool.processTask('op2', { data: 'test' }))
+        .rejects.toThrow('Failed to initialize worker pool');
 
       // Restore original Worker
       global.Worker = OriginalWorker;
@@ -164,7 +170,9 @@ describe('WorkerPool', () => {
       expect(true).toBe(true);
     });
 
-    it('should handle task rejection on unknown task ID', () => {
+    it('should handle task rejection on unknown task ID', async () => {
+      // Create a worker first (lazy pool) so one exists to probe
+      await workerPool.processTask('seed', { data: 'test' });
       const mockWorker = (workerPool as any).workers[0];
 
       // Simulate message with unknown task ID

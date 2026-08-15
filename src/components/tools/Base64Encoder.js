@@ -4,13 +4,42 @@
  */
 
 import { WorkerOperation } from "../../utils/worker-interface.ts";
-import { WorkerPool } from "../../utils/worker-pool.ts";
+import { WorkerPool, withTimeout } from "../../utils/worker-pool.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
+import DataProcessorWorkerUrl from "../../workers/data-processor.ts?worker&url";
+
+// Threshold above which Base64 work is offloaded to the worker pool
+const WORKER_THRESHOLD_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Base64-encode UTF-8 text (chunked — spreading multi-MB byte arrays into
+ * String.fromCharCode overflows the call stack).
+ */
+function base64FromUtf8(text) {
+  const bytes = new TextEncoder().encode(text);
+  const CHUNK = 0x8000;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Base64-decode a string back to UTF-8 text
+ */
+function utf8FromBase64(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
 
 export class Base64Encoder {
   constructor(element) {
     this.element = element;
-    this.workerPool = new WorkerPool();
+    this.workerPool = new WorkerPool(DataProcessorWorkerUrl);
     this.currentInput = '';
     this.currentOutput = '';
     this.isProcessing = false;
@@ -182,19 +211,30 @@ export class Base64Encoder {
     });
   }
 
-  convert() {
+  async convert() {
     const input = this.inputTextarea.value;
     if (!input) {
       this.showError('Please enter some input.');
       return;
     }
 
+    if (this.isProcessing) return;
+
     this.setProcessing(true);
     this.clearError();
 
     try {
       let result;
-      if (this.mode === 'encode') {
+      if (new Blob([input]).size > WORKER_THRESHOLD_BYTES) {
+        // Large input — offload to the worker so the main thread never freezes
+        const operation = this.mode === 'encode' ? WorkerOperation.BASE64_ENCODE : WorkerOperation.BASE64_DECODE;
+        const workerResult = await withTimeout(
+          this.workerPool.processTask(operation, { data: input, variant: this.variant }),
+          30000,
+          'Operation timed out'
+        );
+        result = workerResult.result;
+      } else if (this.mode === 'encode') {
         result = this.encode(input);
       } else {
         result = this.decode(input);
@@ -211,9 +251,9 @@ export class Base64Encoder {
   }
 
   encode(text) {
-    const encoded = btoa(unescape(encodeURIComponent(text)));
+    const encoded = base64FromUtf8(text);
     return this.variant === 'urlsafe'
-      ? encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+      ? encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
       : encoded;
   }
 
@@ -223,8 +263,7 @@ export class Base64Encoder {
       base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
       while (base64.length % 4) base64 += '=';
     }
-    const decoded = atob(base64);
-    return decodeURIComponent(escape(decoded));
+    return utf8FromBase64(base64);
   }
 
   showError(message) {
@@ -301,9 +340,7 @@ export class Base64Encoder {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {

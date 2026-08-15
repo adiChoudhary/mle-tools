@@ -4,13 +4,19 @@
  */
 
 import { WorkerOperation } from "../../utils/worker-interface.ts";
-import { WorkerPool } from "../../utils/worker-pool.ts";
+import { WorkerPool, withTimeout } from "../../utils/worker-pool.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
+import DataProcessorWorkerUrl from "../../workers/data-processor.ts?worker&url";
+
+// Tree view safety caps (keep the main thread responsive on large inputs)
+const TREE_VIEW_MAX_NODES = 50000;
+const TREE_VIEW_MAX_DEPTH = 1000;
 
 export class JsonFormatter {
   constructor(element) {
     this.element = element;
-    this.workerPool = new WorkerPool();
+    this.workerPool = new WorkerPool(DataProcessorWorkerUrl);
     this.maxMemoryMB = 50;
 
     // DOM elements
@@ -383,34 +389,14 @@ export class JsonFormatter {
   }
 
   async processWithWorker(operation, input) {
-    return new Promise((resolve, reject) => {
-      const worker = this.workerPool.getWorker();
-      const operationId = `json_${Date.now()}`;
-
-      const timeout = setTimeout(() => {
-        reject(new Error('Operation timed out'));
-      }, 30000); // 30 second timeout
-
-      const messageHandler = (event) => {
-        if (event.data.id === operationId) {
-          worker.removeEventListener('message', messageHandler);
-          clearTimeout(timeout);
-
-          if (event.data.success) {
-            resolve(event.data.result);
-          } else {
-            reject(new Error(event.data.error || 'Worker processing failed'));
-          }
-        }
-      };
-
-      worker.addEventListener('message', messageHandler);
-      worker.postMessage({
-        id: operationId,
-        operation,
-        input
-      });
-    });
+    // The worker pool speaks {id, type:'process', payload:{operation, input}}
+    // and answers {id, type:'result'|'error', payload} — see worker-pool.ts.
+    const result = await withTimeout(
+      this.workerPool.processTask(operation, input),
+      30000,
+      'Operation timed out'
+    );
+    return result;
   }
 
   processSync(operation, data, options) {
@@ -457,6 +443,17 @@ export class JsonFormatter {
   generateTreeView() {
     try {
       const parsed = JSON.parse(this.currentInput);
+
+      // Iterative size probe: refuse huge/deep trees before rendering
+      // (avoids main-thread freezes and recursion stack overflows).
+      const { nodes, depth } = this.measureTree(parsed);
+      if (nodes > TREE_VIEW_MAX_NODES || depth > TREE_VIEW_MAX_DEPTH) {
+        this.displayError(
+          `Tree view is limited to ${TREE_VIEW_MAX_NODES.toLocaleString()} nodes and depth ${TREE_VIEW_MAX_DEPTH}. This JSON has ~${nodes.toLocaleString()} nodes (depth ${depth}) — use Beautify instead.`
+        );
+        return;
+      }
+
       const treeHTML = this.renderJsonTree(parsed);
 
       this.outputContainer.innerHTML = `
@@ -470,6 +467,38 @@ export class JsonFormatter {
     } catch (error) {
       this.displayError(error.message);
     }
+  }
+
+  /**
+   * Count nodes and max nesting depth iteratively (explicit stack —
+   * never recurses, so it is safe for pathological inputs).
+   */
+  measureTree(value) {
+    if (value === null || typeof value !== 'object') {
+      return { nodes: 1, depth: 1 };
+    }
+
+    let nodes = 1;
+    let depth = 0;
+    const stack = [{ value, level: 1 }];
+
+    while (stack.length > 0) {
+      const frame = stack.pop();
+      if (frame.level > depth) depth = frame.level;
+
+      const children = Array.isArray(frame.value)
+        ? frame.value
+        : Object.values(frame.value);
+
+      for (const child of children) {
+        nodes++;
+        if (child !== null && typeof child === 'object') {
+          stack.push({ value: child, level: frame.level + 1 });
+        }
+      }
+    }
+
+    return { nodes, depth };
   }
 
   renderJsonTree(obj, level = 0) {
@@ -804,9 +833,7 @@ export class JsonFormatter {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {

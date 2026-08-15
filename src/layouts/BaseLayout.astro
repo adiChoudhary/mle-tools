@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import CommandPalette from '../components/CommandPalette.astro';
+import { TOOLS } from '../utils/tools.ts';
 
 export interface Props {
   title: string;
@@ -20,34 +21,18 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 // Schema.org WebSite structured data (rendered via set:html — define:vars wraps an
 // ld+json script in an executable IIFE and breaks the JSON output).
+// No SearchAction: the site has no server-side search route (tool search is the
+// client-side ⌘K command palette).
 const siteData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "DevToolbox",
   url: Astro.site,
-  description: "Privacy-first developer utilities that process all data locally in your browser.",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${Astro.site}/tools?q={search_term_string}`,
-    "query-input": "required name=search_term_string"
-  }
+  description: "Privacy-first developer utilities that process all data locally in your browser."
 };
 
-// Shared tool list for command palette
-const tools = [
-  { name: 'JSON Formatter', path: '/tools/json-formatter', icon: '📄', description: 'Format, validate, and compare JSON data' },
-  { name: 'Base64 Encoder', path: '/tools/base64-encoder', icon: '🔤', description: 'Encode and decode Base64 strings' },
-  { name: 'JWT Decoder', path: '/tools/jwt-decoder', icon: '🔑', description: 'Decode and validate JSON Web Tokens' },
-  { name: 'URL Encoder', path: '/tools/url-encoder', icon: '🔗', description: 'Encode and decode URL parameters' },
-  { name: 'Hash Generator', path: '/tools/hash-generator', icon: '🔐', description: 'Generate MD5, SHA-1, SHA-256, SHA-512 hashes' },
-  { name: 'Timestamp Converter', path: '/tools/timestamp-converter', icon: '⏰', description: 'Convert between timestamp formats' },
-  { name: 'Data Converter', path: '/tools/data-converter', icon: '🔄', description: 'Convert between CSV, JSON, and YAML' },
-  { name: 'Regex Tester', path: '/tools/regex-and-sample-data', icon: '🎯', description: 'Test regular expressions with real-time matching' },
-  { name: 'Sample Data Generator', path: '/tools/regex-and-sample-data', icon: '📊', description: 'Generate mock JSON, CSV, and SQL data' },
-  { name: 'Crypto Tool', path: '/tools/crypto', icon: '🛡️', description: 'AES-GCM and RSA encryption and decryption' },
-  { name: 'Crontab Evaluator', path: '/tools/crontab-evaluator', icon: '⏱️', description: 'Validate and evaluate cron expressions' },
-  { name: 'Data Measurement', path: '/tools/data-measurement', icon: '📐', description: 'Convert data sizes and transfer rates' },
-];
+// Shared tool list for the command palette (single source of truth: utils/tools.ts)
+const tools = TOOLS;
 ---
 
 <!doctype html>
@@ -107,12 +92,10 @@ const tools = [
     <script type="application/ld+json" set:html={JSON.stringify(siteData)}></script>
   </head>
   <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <!-- Skip to main content link for screen readers -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50">Skip to main content</a>
-
-    <main id="main-content">
-      <slot />
-    </main>
+    <!-- Each page provides its own main-content landmark and skip link
+         (ToolLayout / index / 404); this layout no longer wraps the slot
+         in a second main element. -->
+    <slot />
 
     <!-- Command Palette -->
     <CommandPalette tools={tools} />

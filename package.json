@@ -19,15 +19,12 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.2",
     "astro": "^7.1.6",
-    "jose": "^6.2.7",
     "js-yaml": "^5.2.3",
     "papaparse": "^5.5.4",
-    "tailwindcss": "^4.3.3",
-    "uuid": "^14.0.1"
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/uuid": "^10.0.0",
     "@vitest/ui": "^4.1.10",
     "happy-dom": "^20.11.1",
     "vitest": "^4.1.10"

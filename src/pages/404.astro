@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { TOOLS } from '../utils/tools.ts';
+
+// Deduplicate: several tools share one page (regex-and-sample-data)
+const uniqueTools = TOOLS.filter((t, i) => TOOLS.findIndex(x => x.path === t.path) === i);
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you are looking for does not exist. Browse the DevToolbox developer tools instead."
+  keywords="404, page not found, developer tools"
+>
+  <!-- Skip Navigation Link (WCAG 2.4.1 Bypass Blocks) -->
+  <a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none"
+  >
+    Skip to main content
+  </a>
+
+  <main id="main-content" class="min-h-full" role="main">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+      <p class="text-6xl font-extrabold text-blue-600 dark:text-blue-400 mb-4" aria-hidden="true">404</p>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Page not found</h1>
+      <p class="text-gray-600 dark:text-gray-400 mb-8">
+        The page you are looking for does not exist or has been moved.
+        Head back to the home page or pick a tool below.
+      </p>
+      <a
+        href="/"
+        class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      >
+        ← Back to home
+      </a>
+
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mt-16 mb-6">Available tools</h2>
+      <nav aria-label="Tool navigation" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+        {uniqueTools.map((tool) => (
+          <a
+            href={tool.path}
+            class="flex items-center space-x-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            <span class="text-xl" aria-hidden="true">{tool.icon}</span>
+            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{tool.name}</span>
+          </a>
+        ))}
+      </nav>
+    </div>
+  </main>
+</BaseLayout>

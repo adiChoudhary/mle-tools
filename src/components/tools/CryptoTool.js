@@ -12,6 +12,7 @@ import {
   decryptRSA,
   exportKey,
 } from "../../utils/crypto.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
 
 function arrayBufferToHex(buffer) {
   return Array.from(new Uint8Array(buffer))
@@ -20,21 +21,17 @@ function arrayBufferToHex(buffer) {
 }
 
 function hexToArrayBuffer(hex) {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  const clean = hex.replace(/\s+/g, '');
+  if (clean.length === 0 || clean.length % 2 !== 0) {
+    throw new Error('Hex input must contain an even number of characters');
   }
-  return bytes.buffer;
-}
-
-function arrayBufferToBase64(buffer) {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)));
-}
-
-function base64ToArrayBuffer(b64) {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  if (!/^[0-9a-fA-F]+$/.test(clean)) {
+    throw new Error('Hex input contains invalid characters (expected 0-9, a-f)');
+  }
+  const bytes = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < clean.length; i += 2) {
+    bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16);
+  }
   return bytes.buffer;
 }
 
@@ -445,9 +442,7 @@ export class CryptoTool {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {}

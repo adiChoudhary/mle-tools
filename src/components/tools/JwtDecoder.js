@@ -3,7 +3,7 @@
  * Handles JWT decoding, validation, signature verification, and security analysis
  */
 
-import { WorkerOperation } from "../../utils/worker-interface.ts";
+import { escapeHtml } from "../../utils/escape-html.ts";
 
 export class JwtDecoder {
   constructor(element) {
@@ -531,9 +531,7 @@ export class JwtDecoder {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {

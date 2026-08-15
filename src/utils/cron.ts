@@ -68,19 +68,28 @@ export function parseCronExpression(expr) {
   }
 
   let minute, hour, dom, month, dow, second;
+  let domField, dowField;
 
   if (parts.length === 6) {
-    [second, minute, hour, dom, month, dow] = parts;
+    [second, minute, hour, domField, month, dowField] = parts;
     second = parseField(second, 0, 59, 'seconds');
   } else {
-    [minute, hour, dom, month, dow] = parts;
+    [minute, hour, domField, month, dowField] = parts;
   }
+
+  // Quartz-style '?' wildcard: means "no specific value" for dom/dow
+  if (domField === '?') domField = '*';
+  if (dowField === '?') dowField = '*';
 
   minute = parseField(minute, 0, 59, 'minutes');
   hour = parseField(hour, 0, 23, 'hours');
-  dom = parseField(dom, 1, 31, 'day of month');
+  dom = parseField(domField, 1, 31, 'day of month');
   month = parseField(month, 1, 12, 'months');
-  dow = parseField(dow, 0, 7, 'day of week'); // 0 and 7 both mean Sunday
+  dow = parseField(dowField, 0, 7, 'day of week'); // 0 and 7 both mean Sunday
+
+  // Standard cron: dom/dow are OR-ed only when both are restricted
+  const domRestricted = domField !== '*' && domField !== '?';
+  const dowRestricted = dowField !== '*' && dowField !== '?';
 
   // Normalize: 7 -> 0 for Sunday
   if (dow.includes(7)) {
@@ -90,7 +99,7 @@ export function parseCronExpression(expr) {
     dow.sort((a, b) => a - b);
   }
 
-  return { minute, hour, dom, month, dow, hasSeconds: parts.length === 6 };
+  return { minute, hour, dom, month, dow, second, hasSeconds: parts.length === 6, domRestricted, dowRestricted };
 }
 
 /**
@@ -175,7 +184,14 @@ export function cronToHuman(expr) {
 }
 
 /**
- * Calculate the next N execution times from a cron expression
+ * Calculate the next N execution times from a cron expression.
+ *
+ * Uses standard cron day semantics: when BOTH day-of-month and day-of-week
+ * are restricted, a day matches if EITHER field matches (OR, not AND).
+ *
+ * All date arithmetic is overflow-safe: the day is reset to 1 before any
+ * explicit month change, so e.g. Jan 31 -> Feb never lands on March 2/3;
+ * day increments use setDate(day+1), which JS Date rolls over correctly.
  */
 export function getNextExecutions(expr, count = 5, from = new Date()) {
   const parsed = parseCronExpression(expr);
@@ -183,7 +199,7 @@ export function getNextExecutions(expr, count = 5, from = new Date()) {
 
   // Start from the next minute (or next second if 6-field)
   const hasSeconds = parsed.hasSeconds;
-  let candidate = new Date(from);
+  const candidate = new Date(from.getTime());
 
   // Move to the next boundary
   if (hasSeconds) {
@@ -195,127 +211,95 @@ export function getNextExecutions(expr, count = 5, from = new Date()) {
     candidate.setMinutes(candidate.getMinutes() + 1);
   }
 
-  // Safety limit to prevent infinite loops
-  const maxIterations = 366 * 24 * 60 * (hasSeconds ? 60 : 1); // ~1 year of minutes (or seconds)
+  // Standard cron: dom/dow are OR-ed when both are restricted
+  const dayMatches = (d) => {
+    const domOk = parsed.dom.includes(d.getDate());
+    const dowOk = parsed.dow.includes(d.getDay());
+    if (parsed.domRestricted && parsed.dowRestricted) return domOk || dowOk;
+    if (parsed.domRestricted) return domOk;
+    if (parsed.dowRestricted) return dowOk;
+    return true;
+  };
+
+  // Advance to the start of the next day. setDate(N+1) is overflow-safe:
+  // JS Date rolls Jan 31 + 1 onto Feb 1 (and leap years correctly).
+  // (Only explicit month changes need the day reset to 1 first.)
+  const advanceToNextDay = () => {
+    candidate.setDate(candidate.getDate() + 1);
+    candidate.setHours(0, 0, 0, 0);
+  };
+
+  // Safety limit to prevent infinite loops (~5 years of minutes)
+  const maxIterations = 366 * 5 * 24 * 60;
   let iterations = 0;
 
   while (results.length < count && iterations < maxIterations) {
     iterations++;
 
-    const month = candidate.getMonth() + 1; // JS months are 0-indexed
-    const dom = candidate.getDate();
-    const dow = candidate.getDay();
-    const hour = candidate.getHours();
-    const minute = candidate.getMinutes();
-    const second = candidate.getSeconds();
-
-    // Check month
+    // Check month (advance month-by-month; day reset to 1 first — safe)
+    const month = candidate.getMonth() + 1;
     if (!parsed.month.includes(month)) {
-      // Skip to the next valid month
-      const nextMonth = parsed.month.find(m => m > month);
-      if (nextMonth !== undefined) {
-        candidate.setMonth(nextMonth - 1);
-        candidate.setDate(1);
-      } else {
-        // Wrap to next year
-        candidate.setFullYear(candidate.getFullYear() + 1);
-        candidate.setMonth(parsed.month[0] - 1);
-        candidate.setDate(1);
-      }
-      candidate.setHours(0);
-      candidate.setMinutes(0);
-      candidate.setSeconds(0);
+      candidate.setDate(1);
+      candidate.setMonth(candidate.getMonth() + 1);
+      candidate.setHours(0, 0, 0, 0);
       continue;
     }
 
-    // Check day of month
-    if (!parsed.dom.includes(dom)) {
-      candidate.setDate(dom + 1);
-      candidate.setHours(0);
-      candidate.setMinutes(0);
-      candidate.setSeconds(0);
-      continue;
-    }
-
-    // Check day of week
-    if (!parsed.dow.includes(dow)) {
-      candidate.setDate(dom + 1);
-      candidate.setHours(0);
-      candidate.setMinutes(0);
-      candidate.setSeconds(0);
+    // Check day (dom/dow with standard OR semantics)
+    if (!dayMatches(candidate)) {
+      advanceToNextDay();
       continue;
     }
 
     // Check hour
+    const hour = candidate.getHours();
     if (!parsed.hour.includes(hour)) {
       const nextHour = parsed.hour.find(h => h > hour);
       if (nextHour !== undefined) {
-        candidate.setHours(nextHour);
+        candidate.setHours(nextHour, 0, 0, 0);
       } else {
-        candidate.setDate(dom + 1);
-        candidate.setHours(parsed.hour[0]);
+        advanceToNextDay();
+        candidate.setHours(parsed.hour[0], 0, 0, 0);
       }
-      candidate.setMinutes(0);
-      candidate.setSeconds(0);
       continue;
     }
 
     // Check minute
+    const minute = candidate.getMinutes();
     if (!parsed.minute.includes(minute)) {
       const nextMinute = parsed.minute.find(m => m > minute);
       if (nextMinute !== undefined) {
-        candidate.setMinutes(nextMinute);
+        candidate.setMinutes(nextMinute, 0, 0);
       } else {
-        // Advance to next hour
-        const nextHr = parsed.hour.find(h => h > hour);
-        if (nextHr !== undefined) {
-          candidate.setHours(nextHr);
-          candidate.setMinutes(parsed.minute[0]);
-        } else {
-          candidate.setDate(dom + 1);
-          candidate.setHours(parsed.hour[0]);
-          candidate.setMinutes(parsed.minute[0]);
-        }
+        // Roll into the next hour (setHours handles day rollover)
+        candidate.setHours(candidate.getHours() + 1, parsed.minute[0], 0, 0);
       }
-      candidate.setSeconds(0);
       continue;
     }
 
     // Check second (if 6-field)
-    if (hasSeconds && !parsed.second.includes(second)) {
-      const nextSec = parsed.second.find(s => s > second);
-      if (nextSec !== undefined) {
-        candidate.setSeconds(nextSec);
-      } else {
-        // Advance to next minute
-        const nextMin = parsed.minute.find(m => m > minute);
-        if (nextMin !== undefined) {
-          candidate.setMinutes(nextMin);
-          candidate.setSeconds(parsed.second[0]);
+    if (hasSeconds) {
+      const second = candidate.getSeconds();
+      if (!parsed.second.includes(second)) {
+        const nextSecond = parsed.second.find(s => s > second);
+        if (nextSecond !== undefined) {
+          candidate.setSeconds(nextSecond, 0);
         } else {
-          const nextHr = parsed.hour.find(h => h > hour);
-          if (nextHr !== undefined) {
-            candidate.setHours(nextHr);
-            candidate.setMinutes(parsed.minute[0]);
-          } else {
-            candidate.setDate(dom + 1);
-            candidate.setHours(parsed.hour[0]);
-            candidate.setMinutes(parsed.minute[0]);
-          }
-          candidate.setSeconds(parsed.second[0]);
+          // Roll into the next minute (setMinutes handles hour/day rollover)
+          candidate.setMinutes(candidate.getMinutes() + 1, parsed.second[0], 0);
         }
+        continue;
       }
-      continue;
     }
 
     // All fields match!
-    results.push(new Date(candidate));
+    results.push(new Date(candidate.getTime()));
 
-    // Advance
+    // Advance to the next candidate boundary
     if (hasSeconds) {
-      candidate.setSeconds(second + 1);
+      candidate.setSeconds(candidate.getSeconds() + 1, 0);
     } else {
-      candidate.setMinutes(minute + 1);
+      candidate.setMinutes(candidate.getMinutes() + 1, 0, 0);
     }
   }
 

@@ -3,6 +3,8 @@
  * URL encode/decode, query parameter editor, and MongoDB ObjectId decoder
  */
 
+import { escapeHtml } from "../../utils/escape-html.ts";
+
 export class UrlEncoder {
   constructor(element) {
     this.element = element;
@@ -429,9 +431,7 @@ export class UrlEncoder {
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return escapeHtml(text);
   }
 
   destroy() {

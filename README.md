@@ -41,15 +41,15 @@ src/
 ├── components/tools/      # Vanilla JS tool classes (one per tool, zero framework)
 ├── components/            # CommandPalette (⌘K), ThemeToggle islands
 ├── layouts/               # BaseLayout (SEO meta, CSP, structured data), ToolLayout
-├── pages/                 # One route per tool (SEO: unique title/description/OG/JSON-LD)
-├── utils/                 # crypto, jwt, cron, csv/yaml, worker-pool, memory limit, a11y, theme
-├── workers/               # data-processor.ts (heavy computation), sw.ts (offline caching)
+├── pages/                 # One route per tool (SEO: unique title/description/OG/JSON-LD) + 404
+├── utils/                 # crypto, jwt, cron, csv/yaml, worker-pool, memory limit, theme
+├── workers/               # data-processor.ts (heavy computation, bundled as an ES-module worker)
 └── styles/                # global.css (Tailwind v4, class-based dark mode)
 ```
 
 Key behaviors:
 
-- **Web Workers:** inputs above the threshold are processed off the main thread (`worker-pool.ts`); a non-blocking "processing in background" state is shown for long jobs.
+- **Web Workers:** inputs above 10 MB are processed off the main thread. The worker is a single self-contained ES-module bundle emitted to `/_astro/` (loaded within `worker-src 'self'`); `worker-pool.ts` creates workers lazily on the first large task and speaks a typed `{id, type, payload}` protocol. The JSON tree view is size-capped so it never freezes the main thread either.
 - **50 MB hard limit:** pasting/uploading more shows *"Data exceeds 50MB browser memory limits. Please use a local CLI tool for this operation."*
 - **Theming:** system preference by default, manual toggle persisted in `localStorage` (UI preference only — tool data is never persisted). A hashed inline head bootstrap applies the theme before first paint (no FOUC).
 - **Accessibility:** WCAG 2.1 AA — keyboard-navigable command palette (⌘K / Ctrl+K), skip links, ARIA labels, live regions, focus management.
@@ -67,8 +67,8 @@ Any static host (Netlify, Cloudflare Pages, GitHub Pages, S3+CDN…). Before dep
 - `astro.config.mjs` → `site: 'https://devtoolbox.dev'`
 - `public/robots.txt` → sitemap URL
 
-And set on the host: `X-Frame-Options: DENY` (or CSP `frame-ancestors 'none'`).
+Security headers ship turnkey: `public/_headers` (copied to `dist/` on every build) sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` and `Permissions-Policy` on Netlify/Cloudflare Pages. On other hosts, map those headers manually (the CSP itself is delivered via the per-page `<meta>` tag).
 
 ## Testing
 
-405 tests (Vitest + happy-dom) covering crypto primitives, JWT/cron/CSV logic, worker integration, memory limits, and accessibility utilities.
+329 tests (Vitest + happy-dom, plus a node-environment end-to-end worker suite) covering crypto primitives, JWT/cron/CSV logic, the data-processor worker protocol against the real worker module, memory limits, and tool UI flows.

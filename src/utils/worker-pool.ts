@@ -1,5 +1,4 @@
 import { WorkerError } from './errors';
-import { MEMORY_LIMITS } from './constants';
 
 /**
  * Message types for worker communication
@@ -23,7 +22,34 @@ export interface WorkerTask<TInput = any, TOutput = any> {
 }
 
 /**
- * Web Worker pool manager for processing large datasets
+ * Generate a task id without relying on crypto.randomUUID (which is
+ * unavailable on non-secure origins such as http:// intranet deployments).
+ */
+let taskSeq = 0;
+function createTaskId(): string {
+  taskSeq += 1;
+  return `task-${Date.now().toString(36)}-${taskSeq.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * Reject `promise` if it does not settle within `ms` milliseconds.
+ * The underlying promise keeps running; this only bounds the caller.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number, message = 'Operation timed out'): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); }
+    );
+  });
+}
+
+/**
+ * Web Worker pool manager for processing large datasets.
+ *
+ * Workers are created lazily — the first task triggers pool population —
+ * so pages only pay for workers when a large input actually arrives.
  */
 export class WorkerPool {
   private workers: Worker[] = [];
@@ -36,19 +62,20 @@ export class WorkerPool {
 
   constructor(workerScript?: string) {
     if (workerScript) {
-      this.initializeWorkers(workerScript);
+      this.workerScript = workerScript;
       this.initialized = true;
     }
   }
 
   /**
-   * Initialize the worker pool with a worker script (lazy initialization)
+   * Initialize the worker pool with a worker script (lazy initialization).
+   * No-op if the pool was constructed with a script.
    */
   public async init(workerScript?: string): Promise<void> {
     if (this.initialized) return;
     const script = workerScript || this.workerScript;
     if (script) {
-      this.initializeWorkers(script);
+      this.workerScript = script;
       this.initialized = true;
     }
   }
@@ -65,20 +92,24 @@ export class WorkerPool {
   }
 
   /**
-   * Initialize the worker pool
+   * Populate the pool with workers (up to maxWorkers). Throws WorkerError
+   * if worker construction fails (e.g. `Worker` unavailable in this context).
    */
-  private initializeWorkers(workerScript: string): void {
-    try {
-      for (let i = 0; i < this.maxWorkers; i++) {
-        const worker = this.createWorker(workerScript);
-        this.workers.push(worker);
-        this.availableWorkers.push(worker);
+  private ensureWorkers(): void {
+    if (!this.workerScript) return;
+
+    while (this.workers.length < this.maxWorkers) {
+      let worker: Worker;
+      try {
+        worker = this.createWorker(this.workerScript);
+      } catch (error) {
+        throw new WorkerError(
+          `Failed to initialize worker pool: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { workerScript: this.workerScript, maxWorkers: this.maxWorkers }
+        );
       }
-    } catch (error) {
-      throw new WorkerError(
-        `Failed to initialize worker pool: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        { workerScript, maxWorkers: this.maxWorkers }
-      );
+      this.workers.push(worker);
+      this.availableWorkers.push(worker);
     }
   }
 
@@ -107,6 +138,16 @@ export class WorkerPool {
 
     if (!task) {
       console.warn(`Received message for unknown task: ${message.id}`);
+      // The task was already settled (e.g. timed out client-side) — return
+      // the worker to the pool so it is not leaked.
+      if (
+        (message.type === 'result' || message.type === 'error') &&
+        this.workers.includes(worker) &&
+        !this.availableWorkers.includes(worker)
+      ) {
+        this.availableWorkers.push(worker);
+        this.processQueue();
+      }
       return;
     }
 
@@ -154,8 +195,8 @@ export class WorkerPool {
     operation: string,
     input: TInput
   ): Promise<TOutput> {
-    return new Promise((resolve, reject) => {
-      const taskId = crypto.randomUUID();
+    return new Promise<TOutput>((resolve, reject) => {
+      const taskId = createTaskId();
       const task: WorkerTask<TInput, TOutput> = {
         id: taskId,
         operation,
@@ -173,7 +214,22 @@ export class WorkerPool {
    * Process the task queue
    */
   private processQueue(): void {
-    if (this.taskQueue.length === 0 || this.availableWorkers.length === 0) {
+    if (this.taskQueue.length === 0) {
+      return;
+    }
+
+    try {
+      this.ensureWorkers();
+    } catch (error) {
+      // Workers cannot be created in this context — reject every queued task
+      const queued = this.taskQueue.splice(0);
+      for (const task of queued) {
+        task.reject(error instanceof Error ? error : new WorkerError('Failed to initialize worker pool'));
+      }
+      return;
+    }
+
+    if (this.availableWorkers.length === 0) {
       return;
     }
 
