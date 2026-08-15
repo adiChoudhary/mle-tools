@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 
 export class JwtDecoder {
   constructor(element) {
@@ -32,21 +33,21 @@ export class JwtDecoder {
         <!-- Input Section -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label for="jwt-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label for="jwt-input" class="dt-label">
               JWT Token
             </label>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center gap-2">
               <button
                 id="load-sample-btn"
-                class="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50
-                       text-blue-700 dark:text-blue-300 rounded transition-colors"
+                type="button"
+                class="dt-btn dt-btn-soft dt-btn-sm"
               >
                 Load Sample
               </button>
               <button
                 id="clear-btn"
-                class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
-                       text-gray-700 dark:text-gray-300 rounded transition-colors"
+                type="button"
+                class="dt-btn dt-btn-sm"
               >
                 Clear
               </button>
@@ -54,9 +55,7 @@ export class JwtDecoder {
           </div>
           <textarea
             id="jwt-input"
-            class="w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="dt-field h-32"
             placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
             spellcheck="false"
           ></textarea>
@@ -66,13 +65,12 @@ export class JwtDecoder {
         <div class="flex items-center gap-3">
           <button
             id="decode-btn"
-            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            type="button"
+            class="dt-btn dt-btn-primary"
           >
             Decode JWT
           </button>
-          <div id="decode-status" class="hidden flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+          <div id="decode-status" class="dt-accent hidden flex items-center gap-2 text-[13px]">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -82,139 +80,129 @@ export class JwtDecoder {
         </div>
 
         <!-- Error Display -->
-        <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">JWT Error</h3>
-              <p id="error-message" class="mt-1 text-sm text-red-700 dark:text-red-300"></p>
-            </div>
+        <div id="error-container" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <div>
+            <h3 class="text-sm font-medium text-red-700 dark:text-red-300">JWT Error</h3>
+            <p id="error-message" class="mt-0.5 text-[13px] text-red-600 dark:text-red-400"></p>
           </div>
         </div>
 
         <!-- Decoded Output -->
-        <div id="decoded-output" class="hidden space-y-6">
+        <div id="decoded-output" class="hidden space-y-5">
           <!-- Token Overview -->
-          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Token Overview</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="dt-card p-4">
+            <h3 class="mb-4 text-[15px] font-semibold tracking-tight">Token Overview</h3>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Algorithm</span>
-                <p id="jwt-algorithm" class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"></p>
+                <span class="dt-meta">Algorithm</span>
+                <p id="jwt-algorithm" class="mt-1 font-mono text-[13.5px]"></p>
               </div>
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Type</span>
-                <p id="jwt-type" class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"></p>
+                <span class="dt-meta">Type</span>
+                <p id="jwt-type" class="mt-1 font-mono text-[13.5px]"></p>
               </div>
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</span>
-                <div id="jwt-status" class="mt-1 flex items-center space-x-2">
-                  <span class="inline-block w-2 h-2 rounded-full"></span>
-                  <span class="text-sm font-medium"></span>
+                <span class="dt-meta">Status</span>
+                <div id="jwt-status" class="mt-1 flex items-center gap-2">
+                  <span class="inline-block h-2 w-2 rounded-full"></span>
+                  <span class="text-[13.5px] font-medium"></span>
                 </div>
               </div>
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Expires</span>
-                <p id="jwt-expires" class="mt-1 text-sm text-gray-900 dark:text-gray-100"></p>
+                <span class="dt-meta">Expires</span>
+                <p id="jwt-expires" class="mt-1 text-[13.5px]"></p>
               </div>
             </div>
           </div>
 
           <!-- Header Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white">Header</h3>
-              <div class="flex space-x-2">
-                <button class="copy-btn px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded" data-target="header-json">
+          <div class="dt-panel p-4">
+            <div class="mb-3.5 flex items-center justify-between">
+              <h3 class="text-[15px] font-semibold tracking-tight">Header</h3>
+              <div class="flex gap-2">
+                <button class="copy-btn dt-btn dt-btn-sm py-0.5! px-2.5! text-xs!" data-target="header-json">
                   Copy
                 </button>
               </div>
             </div>
-            <div id="header-json" class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 font-mono text-sm text-gray-900 dark:text-gray-100 overflow-x-auto"></div>
+            <div id="header-json" class="dt-field overflow-x-auto text-[13px]!"></div>
           </div>
 
           <!-- Payload Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white">Payload</h3>
-              <div class="flex space-x-2">
-                <button class="copy-btn px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded" data-target="payload-json">
+          <div class="dt-panel p-4">
+            <div class="mb-3.5 flex items-center justify-between">
+              <h3 class="text-[15px] font-semibold tracking-tight">Payload</h3>
+              <div class="flex gap-2">
+                <button class="copy-btn dt-btn dt-btn-sm py-0.5! px-2.5! text-xs!" data-target="payload-json">
                   Copy
                 </button>
               </div>
             </div>
-            <div id="payload-json" class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 font-mono text-sm text-gray-900 dark:text-gray-100 overflow-x-auto"></div>
+            <div id="payload-json" class="dt-field overflow-x-auto text-[13px]!"></div>
           </div>
 
           <!-- Signature Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Signature</h3>
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 font-mono text-sm text-gray-900 dark:text-gray-100 overflow-x-auto break-all">
-              <p class="text-gray-500 dark:text-gray-400 mb-2">Raw signature (Base64URL encoded):</p>
-              <p id="signature-raw" class="font-mono text-xs"></p>
+          <div class="dt-panel p-4">
+            <h3 class="mb-3.5 text-[15px] font-semibold tracking-tight">Signature</h3>
+            <div class="dt-field break-all overflow-x-auto text-[13px]!">
+              <p class="dt-empty not-italic! mb-2">Raw signature (Base64URL encoded):</p>
+              <p id="signature-raw" class="text-xs"></p>
             </div>
 
             <!-- HMAC Verification -->
-            <div id="hmac-verification" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <h4 class="text-md font-medium text-gray-900 dark:text-white mb-3">Verify Signature (HMAC)</h4>
-              <div class="flex flex-col md:flex-row gap-3">
+            <div id="hmac-verification" class="mt-4 border-t border-(--border) pt-4">
+              <h4 class="mb-3 text-[14px] font-semibold">Verify Signature (HMAC)</h4>
+              <div class="flex flex-col gap-3 md:flex-row md:items-end">
                 <div class="flex-1">
-                  <label for="hmac-secret" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label for="hmac-secret" class="dt-label mb-1.5 block">
                     Secret Key
                   </label>
                   <input
                     type="text"
                     id="hmac-secret"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg
-                           bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                           font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="dt-field"
                     placeholder="Enter secret key for verification"
                   >
                 </div>
-                <div class="flex items-end">
-                  <button
-                    id="verify-btn"
-                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg
-                           disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Verify
-                  </button>
-                </div>
+                <button
+                  id="verify-btn"
+                  type="button"
+                  class="dt-btn dt-btn-primary"
+                >
+                  Verify
+                </button>
               </div>
               <div id="verification-result" class="mt-3 hidden"></div>
             </div>
           </div>
 
           <!-- Validation & Security -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Validation & Security</h3>
+          <div class="dt-panel p-4">
+            <h3 class="mb-3.5 text-[15px] font-semibold tracking-tight">Validation & Security</h3>
 
             <!-- Validation Results -->
             <div id="validation-results" class="mb-4"></div>
 
             <!-- Security Recommendations -->
-            <div id="security-recommendations" class="pt-4 border-t border-gray-200 dark:border-gray-700"></div>
+            <div id="security-recommendations" class="border-t border-(--border) pt-4"></div>
           </div>
 
           <!-- Raw Token Parts -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Raw Token Parts</h3>
-            <div class="space-y-3">
+          <div class="dt-panel p-4">
+            <h3 class="mb-3.5 text-[15px] font-semibold tracking-tight">Raw Token Parts</h3>
+            <div class="space-y-3.5">
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Header (Base64URL):</span>
-                <p id="raw-header" class="mt-1 font-mono text-xs text-gray-900 dark:text-gray-100 overflow-x-auto bg-gray-50 dark:bg-gray-900/50 p-2 rounded"></p>
+                <span class="dt-meta">Header (Base64URL):</span>
+                <p id="raw-header" class="dt-field mt-1.5 overflow-x-auto p-2.5! text-xs!"></p>
               </div>
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Payload (Base64URL):</span>
-                <p id="raw-payload" class="mt-1 font-mono text-xs text-gray-900 dark:text-gray-100 overflow-x-auto bg-gray-50 dark:bg-gray-900/50 p-2 rounded"></p>
+                <span class="dt-meta">Payload (Base64URL):</span>
+                <p id="raw-payload" class="dt-field mt-1.5 overflow-x-auto p-2.5! text-xs!"></p>
               </div>
               <div>
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Signature (Base64URL):</span>
-                <p id="raw-signature" class="mt-1 font-mono text-xs text-gray-900 dark:text-gray-100 overflow-x-auto bg-gray-50 dark:bg-gray-900/50 p-2 rounded"></p>
+                <span class="dt-meta">Signature (Base64URL):</span>
+                <p id="raw-signature" class="dt-field mt-1.5 overflow-x-auto p-2.5! text-xs!"></p>
               </div>
             </div>
           </div>
@@ -335,7 +323,7 @@ export class JwtDecoder {
     } else {
       statusContainer.innerHTML = `
         <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-        <span class="text-sm font-medium text-green-600 dark:text-green-400">Valid Structure</span>
+        <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">Valid Structure</span>
       `;
     }
 
@@ -345,10 +333,10 @@ export class JwtDecoder {
       const now = new Date();
       const isExpired = expDate < now;
       this.expiresDisplay.innerHTML = `
-        <span class="${isExpired ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}">
+        <span class="${isExpired ? 'text-red-600 dark:text-red-400' : ''}">
           ${expDate.toLocaleString()}
         </span>
-        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">
+        <span class="dt-meta ml-2">
           (${this.formatTimeAgo(expDate)})
         </span>
       `;
@@ -388,11 +376,11 @@ export class JwtDecoder {
 
     if (results.errors.length > 0) {
       html += '<div class="mb-4">';
-      html += '<h4 class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">Errors</h4>';
-      html += '<ul class="space-y-1">';
+      html += '<h4 class="mb-2 text-sm font-medium text-red-700 dark:text-red-300">Errors</h4>';
+      html += '<ul class="space-y-1.5">';
       results.errors.forEach(error => {
-        html += `<li class="text-sm text-red-700 dark:text-red-300 flex items-start">
-          <span class="mr-2 mt-1">⚠️</span>${this.escapeHtml(error)}
+        html += `<li class="flex items-start gap-2 text-[13.5px] text-red-600 dark:text-red-400">
+          <span class="mt-0.5 shrink-0">${icon('alert-circle', 14)}</span>${this.escapeHtml(error)}
         </li>`;
       });
       html += '</ul></div>';
@@ -400,18 +388,18 @@ export class JwtDecoder {
 
     if (results.warnings.length > 0) {
       html += '<div>';
-      html += '<h4 class="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">Warnings</h4>';
-      html += '<ul class="space-y-1">';
+      html += '<h4 class="mb-2 text-sm font-medium text-amber-700 dark:text-amber-300">Warnings</h4>';
+      html += '<ul class="space-y-1.5">';
       results.warnings.forEach(warning => {
-        html += `<li class="text-sm text-yellow-700 dark:text-yellow-300 flex items-start">
-          <span class="mr-2 mt-1">⚠️</span>${this.escapeHtml(warning)}
+        html += `<li class="flex items-start gap-2 text-[13.5px] text-amber-700 dark:text-amber-400">
+          <span class="mt-0.5 shrink-0">${icon('alert-circle', 14)}</span>${this.escapeHtml(warning)}
         </li>`;
       });
       html += '</ul></div>';
     }
 
     if (results.errors.length === 0 && results.warnings.length === 0) {
-      html += '<div class="text-sm text-green-700 dark:text-green-300 flex items-center"><span class="mr-2">✅</span>No validation issues found</div>';
+      html += `<div class="flex items-center gap-2 text-[13.5px] text-emerald-700 dark:text-emerald-400">${icon('check-circle', 15)}No validation issues found</div>`;
     }
 
     this.validationResults.innerHTML = html;
@@ -424,10 +412,10 @@ export class JwtDecoder {
       return;
     }
 
-    let html = '<h4 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Security Recommendations</h4>';
-    html += '<ul class="space-y-2">';
+    let html = '<h4 class="mb-2 text-sm font-semibold">Security Recommendations</h4>';
+    html += '<ul class="list-disc space-y-1.5 pl-5">';
     recommendations.forEach(rec => {
-      html += `<li class="text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(rec)}</li>`;
+      html += `<li class="text-[13.5px] dt-text-2">${this.escapeHtml(rec)}</li>`;
     });
     html += '</ul>';
     this.securityRecommendations.innerHTML = html;
@@ -436,14 +424,14 @@ export class JwtDecoder {
   async verifySignature() {
     const secret = this.hmacSecret.value.trim();
     if (!secret) {
-      this.verificationResult.innerHTML = '<p class="text-sm text-red-600 dark:text-red-400">Please enter a secret key.</p>';
+      this.verificationResult.innerHTML = '<p class="text-[13px] text-red-600 dark:text-red-400">Please enter a secret key.</p>';
       this.verificationResult.classList.remove('hidden');
       return;
     }
 
     this.verifyBtn.disabled = true;
     this.verificationResult.innerHTML = `
-      <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+      <div class="dt-accent flex items-center gap-2 text-[13px]">
         <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -460,25 +448,24 @@ export class JwtDecoder {
 
       if (isValid) {
         this.verificationResult.innerHTML = `
-          <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-            <p class="text-sm text-green-700 dark:text-green-300 flex items-center">
-              <span class="mr-2">✅</span>Signature is valid - token has not been tampered with
-            </p>
+          <div class="dt-box dt-box-success p-3!">
+            <span class="text-emerald-600 dark:text-emerald-400">${icon('check-circle', 16)}</span>
+            <p class="text-[13px] text-emerald-700 dark:text-emerald-300">Signature is valid - token has not been tampered with</p>
           </div>
         `;
       } else {
         this.verificationResult.innerHTML = `
-          <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-            <p class="text-sm text-red-700 dark:text-red-300 flex items-center">
-              <span class="mr-2">❌</span>Signature is invalid - token may have been tampered with or wrong secret
-            </p>
+          <div class="dt-box dt-box-error p-3!">
+            <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 16)}</span>
+            <p class="text-[13px] text-red-600 dark:text-red-400">Signature is invalid - token may have been tampered with or wrong secret</p>
           </div>
         `;
       }
     } catch (error) {
       this.verificationResult.innerHTML = `
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-          <p class="text-sm text-red-700 dark:text-red-300">Verification failed: ${this.escapeHtml(error.message)}</p>
+        <div class="dt-box dt-box-error p-3!">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 16)}</span>
+          <p class="text-[13px] text-red-600 dark:text-red-400">Verification failed: ${this.escapeHtml(error.message)}</p>
         </div>
       `;
     } finally {

@@ -4,9 +4,504 @@
    Tailwind v4 defaults `dark:` to a media query, so opt into the class strategy. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Focus-visible styles for keyboard navigation ── */
+@theme {
+  /* Typography — self-hosted system stacks (strict CSP: zero external requests) */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Accent — one deliberate violet, used sparingly */
+  --color-accent: #8b5cf6;
+  --color-accent-deep: #7c3aed;
+  --color-accent-soft: #a78bfa;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Theme tokens — CSS variables that flip on `.dark`
+   Neutral zinc base + single violet accent (researched 2026
+   "Linear/Vercel/Raycast" dev-tools aesthetic).
+   ════════════════════════════════════════════════════════════ */
+:root {
+  --bg: #fafafa;
+  --bg-soft: #f4f4f5;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --border: rgba(9, 9, 11, 0.09);
+  --border-strong: rgba(9, 9, 11, 0.16);
+  --text-1: #18181b;
+  --text-2: #52525b;
+  --text-3: #a1a1aa;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-text: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.07);
+  --accent-ring: rgba(124, 58, 237, 0.32);
+  --glow: rgba(139, 92, 246, 0.18);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #09090b;
+  --bg-soft: #0d0d10;
+  --surface: #111114;
+  --surface-2: #18181d;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text-1: #f4f4f5;
+  --text-2: #a1a1aa;
+  --text-3: #6b6b74;
+  --accent: #8b5cf6;
+  --accent-hover: #a78bfa;
+  --accent-text: #c4b5fd;
+  --accent-soft: rgba(139, 92, 246, 0.1);
+  --accent-ring: rgba(139, 92, 246, 0.38);
+  --glow: rgba(139, 92, 246, 0.22);
+  color-scheme: dark;
+}
+
+/* ── Page shell ── */
+.dt-shell {
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* Form controls inherit the accent natively */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+/* ── Surfaces ── */
+.dt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+/* Panel with the signature specular top highlight */
+.dt-panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.dt-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ── Buttons ── */
+.dt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease,
+    box-shadow 140ms ease, transform 140ms ease;
+}
+.dt-btn:hover {
+  background: var(--surface-2);
+}
+.dt-btn:active {
+  transform: translateY(1px);
+}
+.dt-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.dt-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.dt-btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.dt-btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 16px -4px var(--accent-ring), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.dark .dt-btn-primary {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.dt-btn-soft {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--accent-text);
+}
+.dt-btn-soft:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.dt-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-2);
+}
+.dt-btn-ghost:hover {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border-color: transparent;
+}
+
+.dt-btn-sm {
+  padding: 5px 11px;
+  font-size: 13px;
+  border-radius: 8px;
+  gap: 6px;
+}
+
+/* ── Fields (inputs / textareas / output panes) ── */
+.dt-field {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-1);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+.dt-field::placeholder {
+  color: var(--text-3);
+}
+.dt-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+textarea.dt-field {
+  resize: vertical;
+}
+.dt-field-sans {
+  font-family: var(--font-sans);
+}
+
+/* ── Segmented control (mode / variant toggles) ── */
+.dt-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.dt-seg-btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+.dt-seg-btn:hover {
+  color: var(--text-1);
+}
+.dt-seg-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.dt-seg-btn-active {
+  background: var(--surface);
+  color: var(--text-1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), inset 0 0 0 1px var(--border);
+}
+.dark .dt-seg-btn-active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* ── Algorithm / option buttons (Hash Generator) ── */
+.dt-alg-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease,
+    box-shadow 140ms ease;
+}
+.dark .dt-alg-btn {
+  background: var(--surface-2);
+}
+.dt-alg-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--text-1);
+}
+.dt-alg-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.dt-alg-btn-active,
+.dt-alg-btn-active:hover {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--accent-text);
+}
+
+/* ── Text helpers ── */
+.dt-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-1);
+}
+.dt-meta {
+  font-size: 12px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+.dt-text-2 {
+  color: var(--text-2);
+}
+.dt-text-3 {
+  color: var(--text-3);
+}
+.dt-accent {
+  color: var(--accent-text);
+}
+.dt-empty {
+  color: var(--text-3);
+  font-style: italic;
+  font-family: var(--font-sans);
+}
+.dt-code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+/* ── Kbd ── */
+.dt-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* ── Badge / pill ── */
+.dt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.dt-badge-accent {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--accent-text);
+}
+
+/* ── Callout boxes (info / error / success) ── */
+.dt-box {
+  display: flex;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  line-height: 1.55;
+  background: var(--surface);
+  color: var(--text-1);
+}
+.dt-box svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.dt-box-info {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.dt-box-error {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+.dark .dt-box-error {
+  background: rgba(239, 68, 68, 0.09);
+}
+.dt-box-warn {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.dt-box-success {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.28);
+}
+
+/* ── Icon tile (tool identity chip) ── */
+.dt-icon-tile {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent-text);
+  flex-shrink: 0;
+}
+.dt-icon-tile-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+}
+
+/* ── Glassmorphism (sticky header, overlays) ── */
+.dt-glass {
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Hero effects: grid pattern + aurora glows ── */
+.dt-grid-bg {
+  background-image: linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 75% at 50% 0%, black 15%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 75% at 50% 0%, black 15%, transparent 72%);
+}
+.dt-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+/* ── Tool cards (home grid) ── */
+.dt-tool-card {
+  position: relative;
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.dt-tool-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -16px var(--glow), 0 2px 8px -4px rgba(0, 0, 0, 0.12);
+}
+.dark .dt-tool-card:hover {
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.65), 0 0 24px -8px var(--glow);
+}
+.dt-tool-card:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.dt-tool-arrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+  color: var(--accent-text);
+}
+.dt-tool-card:hover .dt-tool-arrow,
+.dt-tool-card:focus-visible .dt-tool-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Search box (hero) ── */
+.dt-searchbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px -12px rgba(0, 0, 0, 0.14);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.dark .dt-searchbox {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+}
+.dt-searchbox:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.dt-searchbox:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* ── Hairline divider ── */
+.dt-divider {
+  border-top: 1px solid var(--border);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Accessibility
+   ════════════════════════════════════════════════════════════ */
+
+/* Focus-visible styles for keyboard navigation */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -52,31 +547,28 @@
   white-space: normal !important;
 }
 
-/* ── Dark mode scrollbar ── */
-.dark ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ── Scrollbars (both themes) ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
-
-.dark ::-webkit-scrollbar-track {
-  background: #1f2937;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
-
-/* ── Color scheme follows the applied theme (native form controls, scrollbars) ── */
-html {
-  color-scheme: light;
-}
-html.dark {
-  color-scheme: dark;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 /* ── Reduced motion preference ── */
@@ -106,6 +598,13 @@ html.dark {
   }
 }
 
+/* ── Hidden: the `hidden` utility (layered) loses to unlayered .dt-box's
+   `display: flex` — restore hidden semantics for callout boxes, which the
+   tool islands toggle via classList on the `hidden` class. ── */
+.dt-box.hidden {
+  display: none !important;
+}
+
 /* ── Print styles — hide interactive elements ── */
 @media print {
   [role="dialog"],
@@ -115,9 +614,10 @@ html.dark {
     display: none !important;
   }
 }
-/* ── JSON Tree View Styles ── */
+
+/* ── JSON Tree View ── */
 .json-tree {
-  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   font-size: 0.875rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -128,7 +628,7 @@ html.dark {
   font-weight: normal;
 }
 
-/* ── Loading spinner animation ── */
+/* ── Loading spinner ── */
 @keyframes spin {
   to {
     transform: rotate(360deg);

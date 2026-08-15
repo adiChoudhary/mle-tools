@@ -13,6 +13,7 @@ import {
   exportKey,
 } from "../../utils/crypto.ts";
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 
 function arrayBufferToHex(buffer) {
   return Array.from(new Uint8Array(buffer))
@@ -54,87 +55,85 @@ export class CryptoTool {
     this.element.innerHTML = `
       <div class="space-y-6">
         <!-- Security Warning -->
-        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-          <div class="flex items-start">
-            <span class="text-lg mr-3">⚠️</span>
-            <div>
-              <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">Client-Side Cryptography Warning</h3>
-              <ul class="text-sm text-amber-700 dark:text-amber-300 space-y-1">
-                <li>Keys are handled in browser memory and may be visible in developer tools</li>
-                <li>No hardware security modules (HSMs) are used</li>
-                <li>Do not store private keys in browser storage</li>
-                <li>Use this for development/testing only, not production security</li>
-              </ul>
-            </div>
+        <div class="dt-box dt-box-warn items-start!">
+          <span class="text-amber-500 dark:text-amber-400">${icon('alert-circle', 18)}</span>
+          <div>
+            <h3 class="mb-1.5 text-sm font-medium text-amber-800 dark:text-amber-200">Client-Side Cryptography Warning</h3>
+            <ul class="list-disc space-y-1 pl-4 text-[13px] text-amber-700 dark:text-amber-300">
+              <li>Keys are handled in browser memory and may be visible in developer tools</li>
+              <li>No hardware security modules (HSMs) are used</li>
+              <li>Do not store private keys in browser storage</li>
+              <li>Use this for development/testing only, not production security</li>
+            </ul>
           </div>
         </div>
 
         <!-- Algorithm Selection -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex flex-wrap items-center gap-6">
-            <div>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">Algorithm:</span>
-              <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
-                <button id="alg-aes" class="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white" data-alg="aes">AES-GCM</button>
-                <button id="alg-rsa" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-alg="rsa">RSA-OAEP</button>
+        <div class="dt-panel p-4">
+          <div class="flex flex-wrap items-center gap-x-8 gap-y-4">
+            <div class="flex items-center gap-3">
+              <span class="dt-label">Algorithm:</span>
+              <div class="dt-seg">
+                <button id="alg-aes" class="dt-seg-btn dt-seg-btn-active" data-alg="aes">AES-GCM</button>
+                <button id="alg-rsa" class="dt-seg-btn" data-alg="rsa">RSA-OAEP</button>
               </div>
             </div>
-            <div>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">Operation:</span>
-              <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
-                <button id="op-encrypt" class="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white" data-op="encrypt">Encrypt</button>
-                <button id="op-decrypt" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-op="decrypt">Decrypt</button>
+            <div class="flex items-center gap-3">
+              <span class="dt-label">Operation:</span>
+              <div class="dt-seg">
+                <button id="op-encrypt" class="dt-seg-btn dt-seg-btn-active" data-op="encrypt">Encrypt</button>
+                <button id="op-decrypt" class="dt-seg-btn" data-op="decrypt">Decrypt</button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Key Management Section -->
-        <div id="key-section" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Key Management</h3>
+        <div id="key-section" class="dt-panel p-4 space-y-4">
+          <h3 class="dt-label">Key Management</h3>
           <div class="flex flex-wrap gap-3">
-            <button id="generate-key-btn" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">Generate New Key</button>
-            <button id="export-key-btn" class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>Export Key</button>
+            <button id="generate-key-btn" type="button" class="dt-btn dt-btn-primary">Generate New Key</button>
+            <button id="export-key-btn" type="button" class="dt-btn" disabled>Export Key</button>
           </div>
           <div id="key-display" class="hidden">
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Key (hex):</p>
-            <p id="key-hex" class="font-mono text-xs bg-gray-50 dark:bg-gray-900/50 p-2 rounded break-all"></p>
+            <p class="dt-meta mb-1.5">Key (hex):</p>
+            <p id="key-hex" class="dt-field break-all p-2.5! text-xs!"></p>
           </div>
           <div id="iv-display" class="hidden">
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Initialization Vector (IV, hex):</p>
-            <p id="iv-hex" class="font-mono text-xs bg-gray-50 dark:bg-gray-900/50 p-2 rounded break-all"></p>
+            <p class="dt-meta mb-1.5">Initialization Vector (IV, hex):</p>
+            <p id="iv-hex" class="dt-field break-all p-2.5! text-xs!"></p>
           </div>
         </div>
 
         <!-- Input Section -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="crypto-input" id="crypto-input-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Plaintext Input</label>
-            <div class="flex items-center space-x-2">
-              <button id="load-sample-btn" class="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors">Load Sample</button>
-              <button id="clear-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="crypto-input" id="crypto-input-label" class="dt-label">Plaintext Input</label>
+            <div class="flex items-center gap-2">
+              <button id="load-sample-btn" type="button" class="dt-btn dt-btn-soft dt-btn-sm">Load Sample</button>
+              <button id="clear-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
             </div>
           </div>
-          <textarea id="crypto-input" class="w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter text to encrypt..." spellcheck="false"></textarea>
+          <textarea id="crypto-input" class="dt-field h-32" placeholder="Enter text to encrypt..." spellcheck="false"></textarea>
         </div>
 
         <!-- Custom Key Input (for decryption) -->
         <div id="custom-key-section" class="hidden space-y-3">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Import Key for Decryption</h3>
-          <div class="space-y-2">
-            <label for="custom-key" class="block text-xs text-gray-500 dark:text-gray-400">Key (hex):</label>
-            <input id="custom-key" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Paste key hex..." />
+          <h3 class="dt-label">Import Key for Decryption</h3>
+          <div class="space-y-1.5">
+            <label for="custom-key" class="dt-meta block">Key (hex):</label>
+            <input id="custom-key" type="text" class="dt-field" placeholder="Paste key hex..." />
           </div>
-          <div id="custom-iv-section" class="space-y-2">
-            <label for="custom-iv" class="block text-xs text-gray-500 dark:text-gray-400">IV (hex, 12 bytes for AES-GCM):</label>
-            <input id="custom-iv" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Paste IV hex..." />
+          <div id="custom-iv-section" class="space-y-1.5">
+            <label for="custom-iv" class="dt-meta block">IV (hex, 12 bytes for AES-GCM):</label>
+            <input id="custom-iv" type="text" class="dt-field" placeholder="Paste IV hex..." />
           </div>
         </div>
 
         <!-- Action Button -->
         <div class="flex items-center gap-3">
-          <button id="action-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Encrypt</button>
-          <div id="processing" class="hidden flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+          <button id="action-btn" type="button" class="dt-btn dt-btn-primary">Encrypt</button>
+          <div id="processing" class="dt-accent hidden flex items-center gap-2 text-[13px]">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -144,18 +143,19 @@ export class CryptoTool {
         </div>
 
         <!-- Error -->
-        <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p id="error-message" class="text-sm text-red-700 dark:text-red-300"></p>
+        <div id="error-container" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <p id="error-message" class="text-[13px] text-red-600 dark:text-red-400"></p>
         </div>
 
         <!-- Output -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label id="crypto-output-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Encrypted Output</label>
-            <button id="copy-btn" class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Copy</button>
+            <label id="crypto-output-label" class="dt-label">Encrypted Output</label>
+            <button id="copy-btn" type="button" class="dt-btn dt-btn-sm">Copy</button>
           </div>
-          <div id="crypto-output" class="w-full min-h-24 max-h-48 overflow-auto px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 font-mono text-sm whitespace-pre-wrap break-all">
-            <div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>
+          <div id="crypto-output" class="dt-field min-h-24 max-h-48 overflow-auto whitespace-pre-wrap break-all">
+            <div class="dt-empty">Output will appear here...</div>
           </div>
         </div>
       </div>
@@ -214,7 +214,7 @@ export class CryptoTool {
     // Utility
     this.element.querySelector('#clear-btn').addEventListener('click', () => {
       this.inputTextarea.value = '';
-      this.cryptoOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>';
+      this.cryptoOutput.innerHTML = '<div class="dt-empty">Output will appear here...</div>';
       this.currentOutput = '';
       this.clearError();
     });
@@ -229,7 +229,7 @@ export class CryptoTool {
 
     this.element.querySelectorAll('[data-alg]').forEach(btn => {
       const active = btn.dataset.alg === alg;
-      btn.className = `px-4 py-1.5 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+      btn.className = active ? 'dt-seg-btn dt-seg-btn-active' : 'dt-seg-btn';
     });
 
     // Reset key display
@@ -245,7 +245,7 @@ export class CryptoTool {
 
     this.element.querySelectorAll('[data-op]').forEach(btn => {
       const active = btn.dataset.op === op;
-      btn.className = `px-4 py-1.5 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+      btn.className = active ? 'dt-seg-btn dt-seg-btn-active' : 'dt-seg-btn';
     });
 
     this.customKeySection.classList.toggle('hidden', isEncrypt);

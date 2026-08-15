@@ -3,6 +3,8 @@
  * Bidirectional conversion between Unix Epoch, ISO 8601, and human-readable dates
  */
 
+import { icon } from "../../utils/icons.ts";
+
 export class TimestampConverter {
   constructor(element) {
     this.element = element;
@@ -19,14 +21,14 @@ export class TimestampConverter {
     this.element.innerHTML = `
       <div class="space-y-6">
         <!-- Mode Selector -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Conversion Mode</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button id="mode-epoch-to-datetime" class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-left" data-mode="epoch-to-datetime">
+        <div class="dt-panel p-4">
+          <h3 class="dt-label mb-3">Conversion Mode</h3>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button id="mode-epoch-to-datetime" class="dt-alg-btn dt-alg-btn-active text-left" data-mode="epoch-to-datetime">
               <span class="block font-semibold">Epoch → Date/Time</span>
               <span class="block text-xs opacity-75 mt-0.5">Convert Unix timestamp to readable date</span>
             </button>
-            <button id="mode-datetime-to-epoch" class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 hover:border-blue-400 text-left" data-mode="datetime-to-epoch">
+            <button id="mode-datetime-to-epoch" class="dt-alg-btn text-left" data-mode="datetime-to-epoch">
               <span class="block font-semibold">Date/Time → Epoch</span>
               <span class="block text-xs opacity-75 mt-0.5">Convert date string to Unix timestamp</span>
             </button>
@@ -36,27 +38,25 @@ export class TimestampConverter {
         <!-- Epoch-to-Datetime Panel -->
         <div id="panel-epoch-to-datetime" class="space-y-4">
           <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label for="epoch-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unix Timestamp</label>
-              <div class="flex items-center space-x-2">
-                <label class="inline-flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <select id="epoch-unit" class="mr-2 px-2 py-1 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500">
-                    <option value="seconds">Seconds</option>
-                    <option value="milliseconds">Milliseconds</option>
-                  </select>
-                </label>
-                <button id="now-btn" class="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors">Now</button>
-                <button id="clear-epoch-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <label for="epoch-input" class="dt-label">Unix Timestamp</label>
+              <div class="flex items-center gap-2">
+                <select id="epoch-unit" class="dt-field w-auto! px-2.5! py-1.5! text-[13px]!">
+                  <option value="seconds">Seconds</option>
+                  <option value="milliseconds">Milliseconds</option>
+                </select>
+                <button id="now-btn" type="button" class="dt-btn dt-btn-soft dt-btn-sm">Now</button>
+                <button id="clear-epoch-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
               </div>
             </div>
-            <input id="epoch-input" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 1704067200" />
+            <input id="epoch-input" type="text" class="dt-field" placeholder="e.g. 1704067200" />
           </div>
 
-          <div id="epoch-error" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-700 dark:text-red-300"></div>
+          <div id="epoch-error" class="dt-box dt-box-error hidden items-center! p-3! text-[13px] text-red-600 dark:text-red-400"></div>
 
           <!-- Output -->
           <div id="epoch-output" class="space-y-3">
-            <div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter a Unix timestamp to see conversions...</div>
+            <div class="dt-empty text-sm">Enter a Unix timestamp to see conversions...</div>
           </div>
         </div>
 
@@ -64,30 +64,33 @@ export class TimestampConverter {
         <div id="panel-datetime-to-epoch" class="hidden space-y-4">
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label for="datetime-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date / Time</label>
-              <div class="flex items-center space-x-2">
-                <button id="clear-datetime-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+              <label for="datetime-input" class="dt-label">Date / Time</label>
+              <div class="flex items-center gap-2">
+                <button id="clear-datetime-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
               </div>
             </div>
-            <input id="datetime-input" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 2024-01-01T00:00:00Z or Jan 1, 2024 00:00:00 UTC" />
+            <input id="datetime-input" type="text" class="dt-field" placeholder="e.g. 2024-01-01T00:00:00Z or Jan 1, 2024 00:00:00 UTC" />
           </div>
 
-          <div id="datetime-error" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-700 dark:text-red-300"></div>
+          <div id="datetime-error" class="dt-box dt-box-error hidden items-center! p-3! text-[13px] text-red-600 dark:text-red-400"></div>
 
-          <button id="convert-datetime-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Convert</button>
+          <button id="convert-datetime-btn" type="button" class="dt-btn dt-btn-primary">Convert</button>
 
           <div id="datetime-output" class="space-y-3">
-            <div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter a date/time to see the epoch timestamp...</div>
+            <div class="dt-empty text-sm">Enter a date/time to see the epoch timestamp...</div>
           </div>
         </div>
 
         <!-- Timezone info -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">About Unix Timestamps</h3>
-          <div class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-            <p>Unix timestamps count seconds (or milliseconds) since January 1, 1970 00:00:00 UTC (the "Unix Epoch").</p>
-            <p>Most systems use <strong>seconds</strong> (10 digits), but JavaScript and some APIs use <strong>milliseconds</strong> (13 digits).</p>
-            <p>Your browser's local timezone: <strong id="user-timezone"></strong></p>
+        <div class="dt-box dt-box-info items-start!">
+          <span class="dt-accent">${icon('info', 18)}</span>
+          <div>
+            <h3 class="mb-2 text-sm font-medium">About Unix Timestamps</h3>
+            <div class="space-y-1 text-[13px] dt-text-2">
+              <p>Unix timestamps count seconds (or milliseconds) since January 1, 1970 00:00:00 UTC (the "Unix Epoch").</p>
+              <p>Most systems use <strong>seconds</strong> (10 digits), but JavaScript and some APIs use <strong>milliseconds</strong> (13 digits).</p>
+              <p>Your browser's local timezone: <strong id="user-timezone"></strong></p>
+            </div>
           </div>
         </div>
       </div>
@@ -130,7 +133,7 @@ export class TimestampConverter {
     // Clear epoch
     this.element.querySelector('#clear-epoch-btn').addEventListener('click', () => {
       this.epochInput.value = '';
-      this.epochOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter a Unix timestamp to see conversions...</div>';
+      this.epochOutput.innerHTML = '<div class="dt-empty text-sm">Enter a Unix timestamp to see conversions...</div>';
       this.epochError.classList.add('hidden');
     });
 
@@ -142,7 +145,7 @@ export class TimestampConverter {
 
     this.element.querySelector('#clear-datetime-btn').addEventListener('click', () => {
       this.datetimeInput.value = '';
-      this.datetimeOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter a date/time to see the epoch timestamp...</div>';
+      this.datetimeOutput.innerHTML = '<div class="dt-empty text-sm">Enter a date/time to see the epoch timestamp...</div>';
       this.datetimeError.classList.add('hidden');
     });
   }
@@ -150,10 +153,7 @@ export class TimestampConverter {
   setMode(mode) {
     this.element.querySelectorAll('[data-mode]').forEach(btn => {
       const active = btn.dataset.mode === mode;
-      btn.className = `px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all text-left ${active
-        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 hover:border-blue-400'
-      }`;
+      btn.className = active ? 'dt-alg-btn dt-alg-btn-active text-left' : 'dt-alg-btn text-left';
     });
 
     this.epochPanel.classList.toggle('hidden', mode !== 'epoch-to-datetime');
@@ -163,7 +163,7 @@ export class TimestampConverter {
   convertEpoch() {
     const input = this.epochInput.value.trim();
     if (!input) {
-      this.epochOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter a Unix timestamp to see conversions...</div>';
+      this.epochOutput.innerHTML = '<div class="dt-empty text-sm">Enter a Unix timestamp to see conversions...</div>';
       this.epochError.classList.add('hidden');
       return;
     }
@@ -211,41 +211,41 @@ export class TimestampConverter {
 
     const isFuture = diff > 0;
     const isPast = diff < 0;
-    const timeColor = isFuture ? 'text-blue-600 dark:text-blue-400' : isPast ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400';
+    const timeColor = isFuture ? 'dt-accent' : isPast ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
 
     this.epochOutput.innerHTML = `
-      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-        <div>
-          <span class="text-sm font-medium ${timeColor}">${isFuture ? '🕐 Future' : isPast ? '🕐 Past' : '🕐 Right Now'}</span>
-          <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">${relative}</span>
+      <div class="dt-panel p-4 space-y-3.5">
+        <div class="flex items-baseline gap-2.5">
+          <span class="flex items-center gap-1.5 text-sm font-semibold ${timeColor}">${icon('clock', 15)}${isFuture ? 'Future' : isPast ? 'Past' : 'Right Now'}</span>
+          <span class="text-[13px] dt-text-3">${relative}</span>
         </div>
 
-        <div class="space-y-2">
+        <div class="space-y-2.5">
           <div>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Local Time</span>
-            <p class="font-medium text-gray-900 dark:text-gray-100">${localString}</p>
+            <span class="dt-meta">Local Time</span>
+            <p class="mt-0.5 font-medium">${localString}</p>
           </div>
 
           <div>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">UTC</span>
-            <p class="font-medium text-gray-900 dark:text-gray-100">${utcFormatted}</p>
+            <span class="dt-meta">UTC</span>
+            <p class="mt-0.5 font-medium">${utcFormatted}</p>
           </div>
 
           <div>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">ISO 8601</span>
-            <p class="font-mono text-sm text-gray-900 dark:text-gray-100">${isoString}</p>
+            <span class="dt-meta">ISO 8601</span>
+            <p class="mt-0.5 font-mono text-[13.5px]">${isoString}</p>
           </div>
 
           <div>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">RFC 2822</span>
-            <p class="font-mono text-sm text-gray-900 dark:text-gray-100">${utcString}</p>
+            <span class="dt-meta">RFC 2822</span>
+            <p class="mt-0.5 font-mono text-[13.5px]">${utcString}</p>
           </div>
 
-          <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Timestamps</span>
+          <div class="border-t border-(--border) pt-2.5">
+            <span class="dt-meta">Timestamps</span>
             <div class="mt-1 space-y-1">
-              <p class="font-mono text-sm text-gray-900 dark:text-gray-100">Seconds: <span class="text-blue-600 dark:text-blue-400">${Math.floor(ms / 1000)}</span></p>
-              <p class="font-mono text-sm text-gray-900 dark:text-gray-100">Milliseconds: <span class="text-blue-600 dark:text-blue-400">${ms}</span></p>
+              <p class="font-mono text-[13.5px]">Seconds: <span class="dt-accent">${Math.floor(ms / 1000)}</span></p>
+              <p class="font-mono text-[13.5px]">Milliseconds: <span class="dt-accent">${ms}</span></p>
             </div>
           </div>
         </div>
@@ -265,7 +265,7 @@ export class TimestampConverter {
     if (isNaN(date.getTime())) {
       this.datetimeError.textContent = 'Could not parse that date. Try ISO 8601 format (2024-01-01T00:00:00Z) or a readable format (Jan 1, 2024).';
       this.datetimeError.classList.remove('hidden');
-      this.datetimeOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">Fix the error above and try again.</div>';
+      this.datetimeOutput.innerHTML = '<div class="dt-empty text-sm">Fix the error above and try again.</div>';
       return;
     }
 
@@ -275,27 +275,27 @@ export class TimestampConverter {
     const milliseconds = date.getTime();
 
     this.datetimeOutput.innerHTML = `
-      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+      <div class="dt-panel p-4 space-y-3.5">
         <div>
-          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Parsed as:</span>
-          <p class="font-medium text-gray-900 dark:text-gray-100">${date.toUTCString()}</p>
+          <span class="dt-meta">Parsed as:</span>
+          <p class="mt-0.5 font-medium">${date.toUTCString()}</p>
         </div>
 
-        <div class="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between">
+        <div class="space-y-3 border-t border-(--border) pt-3">
+          <div class="flex items-center justify-between gap-3">
             <div>
-              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Epoch Seconds</span>
-              <p class="font-mono text-lg text-blue-600 dark:text-blue-400">${seconds}</p>
+              <span class="dt-meta">Epoch Seconds</span>
+              <p class="mt-0.5 font-mono text-lg dt-accent">${seconds}</p>
             </div>
-            <button class="copy-epoch-btn px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded" data-value="${seconds}">Copy</button>
+            <button class="copy-epoch-btn dt-btn dt-btn-sm py-0.5! px-2.5! text-xs!" data-value="${seconds}">Copy</button>
           </div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-3">
             <div>
-              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Epoch Milliseconds</span>
-              <p class="font-mono text-lg text-blue-600 dark:text-blue-400">${milliseconds}</p>
+              <span class="dt-meta">Epoch Milliseconds</span>
+              <p class="mt-0.5 font-mono text-lg dt-accent">${milliseconds}</p>
             </div>
-            <button class="copy-epoch-btn px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded" data-value="${milliseconds}">Copy</button>
+            <button class="copy-epoch-btn dt-btn dt-btn-sm py-0.5! px-2.5! text-xs!" data-value="${milliseconds}">Copy</button>
           </div>
         </div>
       </div>

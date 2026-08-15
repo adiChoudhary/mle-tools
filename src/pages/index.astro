@@ -1,7 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ThemeToggle from '../components/ThemeToggle.astro';
-import { TOOLS as tools } from '../utils/tools.ts';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { TOOLS as tools, TOOL_CATEGORIES } from '../utils/tools.ts';
+import { icon } from '../utils/icons.ts';
+
+const FEATURES = [
+  { icon: 'lock', title: 'Private by design', body: 'Strict CSP, zero network calls — your data never leaves the tab.' },
+  { icon: 'zap', title: 'Web-Worker fast', body: 'Inputs over 10 MB are processed off the main thread, so the UI never freezes.' },
+  { icon: 'wifi-off', title: 'Works offline', body: 'A service worker caches the app; the tools load once and stay available.' },
+  { icon: 'command', title: '⌘K everywhere', body: 'Instant tool search with full keyboard control — no mouse required.' },
+];
 ---
 
 <BaseLayout
@@ -12,118 +21,112 @@ import { TOOLS as tools } from '../utils/tools.ts';
   <!-- Skip Navigation Link (WCAG 2.4.1 Bypass Blocks) -->
   <a
     href="#main-content"
-    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none"
   >
     Skip to main content
   </a>
 
-  <div class="min-h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-    <!-- Top Bar -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-      <span class="text-xl font-bold text-blue-600 dark:text-blue-400">DevToolbox</span>
-      <ThemeToggle />
-    </div>
+  <div class="flex min-h-full flex-col">
+    <Header />
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <div class="relative overflow-hidden">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div class="text-center">
-          <h1 class="text-4xl lg:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
-            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              DevToolbox
-            </span>
-          </h1>
-          <p class="text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Privacy-first developer utilities that process all data locally in your browser.
-            <span class="font-semibold">Zero data exfiltration</span>, maximum performance.
-          </p>
+      <!-- Background: subtle grid + aurora glows -->
+      <div class="dt-grid-bg absolute inset-0" aria-hidden="true"></div>
+      <div class="dt-glow -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 bg-violet-500/25 dark:bg-violet-600/20" aria-hidden="true"></div>
+      <div class="dt-glow top-24 left-[8%] h-56 w-56 bg-fuchsia-500/10 dark:bg-fuchsia-600/10" aria-hidden="true"></div>
+      <div class="dt-glow top-40 right-[6%] h-64 w-64 bg-indigo-500/10 dark:bg-indigo-600/10" aria-hidden="true"></div>
 
-          <!-- Key Features -->
-          <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 mb-12">
-            <div class="flex items-center space-x-2 text-green-600 dark:text-green-400">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-              </svg>
-              <span class="font-medium">100% Privacy</span>
-            </div>
-            <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
-              </svg>
-              <span class="font-medium">Blazing Fast</span>
-            </div>
-            <div class="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-              </svg>
-              <span class="font-medium">SEO Optimized</span>
-            </div>
-          </div>
-
-          <!-- Quick Search -->
-          <div class="max-w-md mx-auto">
-            <button
-              id="main-search-btn"
-              class="w-full flex items-center justify-between px-4 py-3 text-left bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-              aria-label="Search tools"
-            >
-              <span class="text-gray-500 dark:text-gray-400">Search tools...</span>
-              <kbd class="inline-flex items-center px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded">
-                ⌘K
-              </kbd>
-            </button>
-          </div>
+      <div class="relative mx-auto max-w-4xl px-4 pb-16 pt-20 text-center sm:px-6 lg:pb-24 lg:pt-28">
+        <div class="mb-7 flex justify-center">
+          <span class="dt-badge dt-badge-accent">
+            <span aria-hidden="true" set:html={icon('sparkles', 13)}></span>
+            100% in your browser — nothing is ever uploaded
+          </span>
         </div>
+
+        <h1 class="text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
+          Developer tools that
+          <br class="hidden sm:block" />
+          <span class="bg-gradient-to-r from-violet-500 via-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+            never touch your data.
+          </span>
+        </h1>
+
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed dt-text-2 sm:text-lg">
+          Format JSON, decode JWTs, hash, encode and convert — twelve fast utilities that run
+          entirely client-side. No sign-up, no servers, no tracking.
+        </p>
+
+        <!-- Quick Search -->
+        <div class="mx-auto mt-9 max-w-md">
+          <button
+            id="main-search-btn"
+            type="button"
+            class="dt-searchbox"
+            aria-label="Search tools"
+          >
+            <span class="dt-text-3" aria-hidden="true" set:html={icon('search', 16)}></span>
+            <span class="flex-1">Search tools…</span>
+            <span class="dt-kbd">⌘K</span>
+          </button>
+        </div>
+
+        <p class="mt-4 text-xs dt-text-3">12 tools · Free forever · Works offline</p>
       </div>
     </div>
 
     <!-- Tools Grid -->
-    <main id="main-content" role="main">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-          Available Tools
-        </h2>
+    <main id="main-content" role="main" class="relative">
+      <div class="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
+        {TOOL_CATEGORIES.map((cat) => {
+          const catTools = tools.filter((t) => t.category === cat.id);
+          return (
+            <section class="mb-12 last:mb-0" aria-labelledby={`cat-${cat.id}`}>
+              <div class="mb-4 flex items-center gap-4">
+                <h2
+                  id={`cat-${cat.id}`}
+                  class="shrink-0 text-[12.5px] font-semibold uppercase tracking-[0.14em] dt-text-3"
+                >
+                  {cat.label}
+                </h2>
+                <div class="h-px flex-1 bg-(--border)" aria-hidden="true"></div>
+              </div>
 
-        <nav aria-label="Tool navigation">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {tools.map((tool) => (
-              <a
-                href={tool.path}
-                class="group block p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-              >
-                <div class="flex items-start space-x-4">
-                  <span class="text-2xl group-hover:scale-110 transition-transform" aria-hidden="true">
-                    {tool.icon}
-                  </span>
-                  <div class="flex-1 min-w-0">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {tool.name}
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      {tool.description}
-                    </p>
-                  </div>
+              <nav aria-label="Tool navigation">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {catTools.map((tool) => (
+                    <a href={tool.path} class="dt-tool-card" aria-label={tool.name}>
+                      <div class="flex items-start justify-between">
+                        <span class="dt-icon-tile" aria-hidden="true" set:html={icon(tool.icon, 20)}></span>
+                        <span class="dt-tool-arrow" aria-hidden="true" set:html={icon('arrow-right', 16)}></span>
+                      </div>
+                      <h3 class="mt-4 text-[15px] font-semibold tracking-tight">{tool.name}</h3>
+                      <p class="mt-1 text-[13px] leading-relaxed dt-text-2">{tool.description}</p>
+                    </a>
+                  ))}
                 </div>
-              </a>
-            ))}
-          </div>
-        </nav>
+              </nav>
+            </section>
+          );
+        })}
       </div>
 
-      <!-- Privacy Notice -->
-      <div class="bg-green-50 dark:bg-green-900/20 border-t border-green-200 dark:border-green-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div class="flex items-center justify-center space-x-3 text-green-800 dark:text-green-200">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <p class="text-sm font-medium">
-              🔒 All data processing happens locally in your browser. No data is sent to external servers, ensuring complete privacy and security.
-            </p>
-          </div>
+      <!-- Feature strip -->
+      <section aria-label="Why DevToolbox" class="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map((f) => (
+            <div class="dt-card p-5">
+              <span class="dt-icon-tile h-9! w-9! rounded-[10px]!" aria-hidden="true" set:html={icon(f.icon, 17)}></span>
+              <h3 class="mt-3.5 text-[14.5px] font-semibold tracking-tight">{f.title}</h3>
+              <p class="mt-1 text-[13px] leading-relaxed dt-text-2">{f.body}</p>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
     </main>
+
+    <Footer />
   </div>
 
   <!-- Search button handler -->

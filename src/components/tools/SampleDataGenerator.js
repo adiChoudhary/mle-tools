@@ -7,6 +7,8 @@ const FIRST_NAMES = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 
 const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
 const DOMAINS = ['gmail.com', 'yahoo.com', 'outlook.com', 'company.com', 'example.org', 'test.io', 'sample.net'];
 
+import { icon } from "../../utils/icons.ts";
+
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -164,37 +166,38 @@ export class SampleDataGenerator {
     this.element.innerHTML = `
       <div class="space-y-4">
         <!-- Controls -->
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-wrap items-end gap-4">
           <div>
-            <label for="sample-count" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Count</label>
-            <input id="sample-count" type="number" min="1" max="1000" value="10" class="w-24 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500" />
+            <label for="sample-count" class="dt-label mb-1.5 block">Count</label>
+            <input id="sample-count" type="number" min="1" max="1000" value="10" class="dt-field w-28!" />
           </div>
           <div>
-            <label for="sample-format" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Format</label>
-            <select id="sample-format" class="w-32 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500">
+            <label for="sample-format" class="dt-label mb-1.5 block">Format</label>
+            <select id="sample-format" class="dt-field w-32!">
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
               <option value="sql">SQL</option>
             </select>
           </div>
-          <div class="flex items-end">
-            <button id="sample-generate-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Generate</button>
-          </div>
+          <button id="sample-generate-btn" type="button" class="dt-btn dt-btn-primary">Generate</button>
         </div>
 
         <!-- Output -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Generated Data</label>
-            <button id="sample-copy-btn" class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Copy</button>
+            <label class="dt-label">Generated Data</label>
+            <button id="sample-copy-btn" type="button" class="dt-btn dt-btn-sm">Copy</button>
           </div>
-          <textarea id="sample-output" readonly class="w-full h-96 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100" placeholder="Click Generate to create sample data..."></textarea>
+          <textarea id="sample-output" readonly class="dt-field h-96" placeholder="Click Generate to create sample data..."></textarea>
         </div>
 
         <!-- Info -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">Sample Data Fields</h3>
-          <p class="text-sm text-blue-700 dark:text-blue-300">Each record includes: id, name, firstName, lastName, email, phone, age, dateOfBirth, gender, address (street, city, state, zipCode), company, salary, isActive, createdAt, avatar</p>
+        <div class="dt-box dt-box-info items-start!">
+          <span class="dt-accent">${icon('database', 18)}</span>
+          <div>
+            <h3 class="mb-1 text-sm font-medium">Sample Data Fields</h3>
+            <p class="text-[13px] dt-text-2">Each record includes: id, name, firstName, lastName, email, phone, age, dateOfBirth, gender, address (street, city, state, zipCode), company, salary, isActive, createdAt, avatar</p>
+          </div>
         </div>
       </div>
     `;

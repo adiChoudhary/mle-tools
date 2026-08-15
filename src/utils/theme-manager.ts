@@ -1,9 +1,17 @@
 /**
- * Theme manager — detects system preference, persists user choice,
- * provides toggle with `theme-change` event dispatch.
+ * Theme manager — persists user choice, provides toggle with
+ * `theme-change` event dispatch.
+ *
+ * Default theme is **dark** (the flagship look); the user's explicit
+ * choice always wins and is persisted in localStorage.
+ * The inline bootstrap script in BaseLayout.astro mirrors this logic
+ * to avoid a flash of the wrong theme before first paint.
  */
 export class ThemeManager {
   #storageKey = 'devtoolbox-theme';
+
+  /** Theme applied when the user has made no explicit choice. */
+  static readonly DEFAULT_THEME: 'light' | 'dark' = 'dark';
 
   constructor() {
     this.#init();
@@ -11,9 +19,7 @@ export class ThemeManager {
 
   /** Get the current effective theme. */
   get theme(): 'light' | 'dark' {
-    const saved = this.#saved;
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return this.#saved ?? ThemeManager.DEFAULT_THEME;
   }
 
   #saved: 'light' | 'dark' | null = (() => {
@@ -23,11 +29,6 @@ export class ThemeManager {
 
   #init(): void {
     this.#apply(this.theme);
-    // Listen for system preference changes
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    mql.addEventListener('change', () => {
-      if (!this.#saved) this.#apply(this.theme);
-    });
   }
 
   #apply(theme: 'light' | 'dark'): void {
@@ -45,6 +46,7 @@ export class ThemeManager {
     this.set(this.theme === 'dark' ? 'light' : 'dark');
   }
 
+  /** Remove the explicit choice and fall back to the default theme. */
   reset(): void {
     localStorage.removeItem(this.#storageKey);
     this.#saved = null;

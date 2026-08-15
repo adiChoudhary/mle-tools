@@ -7,6 +7,7 @@ import { WorkerOperation } from "../../utils/worker-interface.ts";
 import { WorkerPool, withTimeout } from "../../utils/worker-pool.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 import DataProcessorWorkerUrl from "../../workers/data-processor.ts?worker&url";
 
 // Threshold above which Base64 work is offloaded to the worker pool
@@ -57,20 +58,20 @@ export class Base64Encoder {
     this.element.innerHTML = `
       <div class="space-y-6">
         <!-- Mode Selector -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex flex-wrap items-center gap-6">
-            <div>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">Mode:</span>
-              <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
-                <button id="mode-encode" class="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white" data-mode="encode">Encode</button>
-                <button id="mode-decode" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-mode="decode">Decode</button>
+        <div class="dt-panel p-4">
+          <div class="flex flex-wrap items-center gap-x-8 gap-y-4">
+            <div class="flex items-center gap-3">
+              <span class="dt-label">Mode:</span>
+              <div class="dt-seg">
+                <button id="mode-encode" class="dt-seg-btn dt-seg-btn-active" data-mode="encode">Encode</button>
+                <button id="mode-decode" class="dt-seg-btn" data-mode="decode">Decode</button>
               </div>
             </div>
-            <div>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">Variant:</span>
-              <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
-                <button id="variant-standard" class="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white" data-variant="standard">Standard</button>
-                <button id="variant-urlsafe" class="px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-variant="urlsafe">URL-safe</button>
+            <div class="flex items-center gap-3">
+              <span class="dt-label">Variant:</span>
+              <div class="dt-seg">
+                <button id="variant-standard" class="dt-seg-btn dt-seg-btn-active" data-variant="standard">Standard</button>
+                <button id="variant-urlsafe" class="dt-seg-btn" data-variant="urlsafe">URL-safe</button>
               </div>
             </div>
           </div>
@@ -78,21 +79,21 @@ export class Base64Encoder {
 
         <!-- Input Section -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="b64-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300" id="input-label">Text Input</label>
-            <div class="flex items-center space-x-2">
-              <span id="input-size" class="text-sm text-gray-500 dark:text-gray-400">0 bytes</span>
-              <button id="load-sample-btn" class="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors">Load Sample</button>
-              <button id="clear-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="b64-input" class="dt-label" id="input-label">Text Input</label>
+            <div class="flex items-center gap-2">
+              <span id="input-size" class="dt-meta">0 bytes</span>
+              <button id="load-sample-btn" type="button" class="dt-btn dt-btn-soft dt-btn-sm">Load Sample</button>
+              <button id="clear-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
             </div>
           </div>
-          <textarea id="b64-input" class="w-full h-48 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter text to encode..." spellcheck="false"></textarea>
+          <textarea id="b64-input" class="dt-field h-48" placeholder="Enter text to encode..." spellcheck="false"></textarea>
         </div>
 
         <!-- Convert Buttons -->
         <div class="flex items-center gap-3">
-          <button id="convert-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">Encode</button>
-          <div id="processing" class="hidden flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+          <button id="convert-btn" type="button" class="dt-btn dt-btn-primary">Encode</button>
+          <div id="processing" class="dt-accent hidden flex items-center gap-2 text-[13px]">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -102,30 +103,26 @@ export class Base64Encoder {
         </div>
 
         <!-- Error Display -->
-        <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
-              <p id="error-message" class="mt-1 text-sm text-red-700 dark:text-red-300"></p>
-            </div>
+        <div id="error-container" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <div>
+            <h3 class="text-sm font-medium text-red-700 dark:text-red-300">Error</h3>
+            <p id="error-message" class="mt-0.5 text-[13px] text-red-600 dark:text-red-400"></p>
           </div>
         </div>
 
         <!-- Output Section -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="b64-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300" id="output-label">Base64 Output</label>
-            <div class="flex items-center space-x-2">
-              <span id="output-size" class="text-sm text-gray-500 dark:text-gray-400">0 bytes</span>
-              <button id="copy-btn" class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Copy</button>
-              <button id="download-btn" class="px-3 py-1 text-sm bg-green-100 hover:bg-green-200 dark:bg-green-700 dark:hover:bg-green-600 text-green-700 dark:text-green-300 rounded transition-colors">Download</button>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="b64-output" class="dt-label" id="output-label">Base64 Output</label>
+            <div class="flex items-center gap-2">
+              <span id="output-size" class="dt-meta">0 bytes</span>
+              <button id="copy-btn" type="button" class="dt-btn dt-btn-sm">Copy</button>
+              <button id="download-btn" type="button" class="dt-btn dt-btn-sm">Download</button>
             </div>
           </div>
-          <div id="b64-output" class="w-full min-h-48 max-h-72 overflow-auto px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 font-mono text-sm whitespace-pre-wrap break-all">
-            <div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>
+          <div id="b64-output" class="dt-field min-h-48 max-h-72 overflow-auto whitespace-pre-wrap break-all">
+            <div class="dt-empty">Output will appear here...</div>
           </div>
         </div>
       </div>
@@ -193,7 +190,7 @@ export class Base64Encoder {
 
     this.modeButtons.forEach(btn => {
       const active = btn.dataset.mode === mode;
-      btn.className = `px-4 py-1.5 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+      btn.className = active ? 'dt-seg-btn dt-seg-btn-active' : 'dt-seg-btn';
     });
 
     this.inputLabel.textContent = isEncode ? 'Text Input' : 'Base64 Input';
@@ -207,7 +204,7 @@ export class Base64Encoder {
     this.variant = variant;
     this.variantButtons.forEach(btn => {
       const active = btn.dataset.variant === variant;
-      btn.className = `px-3 py-1.5 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+      btn.className = active ? 'dt-seg-btn dt-seg-btn-active' : 'dt-seg-btn';
     });
   }
 
@@ -276,7 +273,7 @@ export class Base64Encoder {
   }
 
   clearOutput() {
-    this.outputContainer.innerHTML = '<div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>';
+    this.outputContainer.innerHTML = '<div class="dt-empty">Output will appear here...</div>';
     this.currentOutput = '';
     this.outputSizeDisplay.textContent = '0 bytes';
   }

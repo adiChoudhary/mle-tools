@@ -5,6 +5,7 @@
 
 import { validateCronExpression, cronToHuman, getNextExecutions, getCronExamples } from "../../utils/cron.ts";
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 
 export class CrontabEvaluator {
   constructor(element) {
@@ -22,76 +23,77 @@ export class CrontabEvaluator {
         <!-- Input -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label for="cron-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cron Expression</label>
-            <div class="flex items-center space-x-2">
-              <button id="clear-cron-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+            <label for="cron-input" class="dt-label">Cron Expression</label>
+            <div class="flex items-center gap-2">
+              <button id="clear-cron-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
             </div>
           </div>
           <div class="flex gap-3">
-            <input id="cron-input" type="text" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="* * * * *" />
-            <button id="evaluate-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">Evaluate</button>
+            <input id="cron-input" type="text" class="dt-field flex-1" placeholder="* * * * *" />
+            <button id="evaluate-btn" type="button" class="dt-btn dt-btn-primary whitespace-nowrap">Evaluate</button>
           </div>
         </div>
 
         <!-- Error -->
-        <div id="cron-error" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p id="cron-error-message" class="text-sm text-red-700 dark:text-red-300"></p>
+        <div id="cron-error" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <p id="cron-error-message" class="text-[13px] text-red-600 dark:text-red-400"></p>
         </div>
 
         <!-- Output -->
         <div id="cron-output" class="hidden space-y-4">
           <!-- Human-readable -->
-          <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <div class="flex items-center space-x-2">
-              <span class="text-lg">✅</span>
-              <span class="text-sm font-medium text-green-700 dark:text-green-300">Valid cron expression</span>
+          <div class="dt-box dt-box-success items-start!">
+            <span class="text-emerald-600 dark:text-emerald-400">${icon('check-circle', 18)}</span>
+            <div>
+              <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Valid cron expression</span>
+              <p id="cron-human" class="mt-1 text-[13px] dt-text-2"></p>
             </div>
-            <p id="cron-human" class="mt-2 text-green-700 dark:text-green-300 text-sm"></p>
           </div>
 
           <!-- Field breakdown -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Expression Breakdown</h3>
+          <div class="dt-panel p-4">
+            <h3 class="dt-label mb-3">Expression Breakdown</h3>
             <div id="cron-fields" class="overflow-x-auto"></div>
           </div>
 
           <!-- Next executions -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Next 5 Execution Times</h3>
+          <div class="dt-panel p-4">
+            <h3 class="dt-label mb-3">Next 5 Execution Times</h3>
             <div id="cron-next" class="space-y-2"></div>
           </div>
         </div>
 
         <!-- Examples -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Common Cron Expressions</h3>
-          <div id="cron-examples" class="space-y-1"></div>
+        <div class="dt-panel p-4">
+          <h3 class="dt-label mb-3">Common Cron Expressions</h3>
+          <div id="cron-examples" class="space-y-1.5"></div>
         </div>
 
         <!-- Cron format reference -->
-        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cron Format Reference</h3>
-          <table class="w-full text-sm">
+        <div class="dt-card p-4">
+          <h3 class="dt-label mb-3">Cron Format Reference</h3>
+          <table class="w-full text-[13.5px]">
             <thead>
-              <tr class="border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left py-2 font-medium text-gray-500 dark:text-gray-400">Field</th>
-                <th class="text-left py-2 font-medium text-gray-500 dark:text-gray-400">Range</th>
-                <th class="text-left py-2 font-medium text-gray-500 dark:text-gray-400">Special</th>
+              <tr class="border-b border-(--border)">
+                <th class="text-left py-2 font-medium dt-text-3">Field</th>
+                <th class="text-left py-2 font-medium dt-text-3">Range</th>
+                <th class="text-left py-2 font-medium dt-text-3">Special</th>
               </tr>
             </thead>
-            <tbody class="text-gray-700 dark:text-gray-300">
-              <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-1.5 py-2 font-mono">Minute</td><td class="py-1.5 py-2">0-59</td><td class="py-1.5 py-2">* , - /</td></tr>
-              <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 font-mono">Hour</td><td class="py-2">0-23</td><td class="py-2">* , - /</td></tr>
-              <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 font-mono">Day of Month</td><td class="py-2">1-31</td><td class="py-2">* , - / ?</td></tr>
-              <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 font-mono">Month</td><td class="py-2">1-12</td><td class="py-2">* , - /</td></tr>
-              <tr><td class="py-2 font-mono">Day of Week</td><td class="py-2">0-7 (0=Sun)</td><td class="py-2">* , - / ?</td></tr>
+            <tbody>
+              <tr class="border-b border-(--border)"><td class="py-2 font-mono">Minute</td><td class="py-2 dt-text-2">0-59</td><td class="py-2 dt-text-2">* , - /</td></tr>
+              <tr class="border-b border-(--border)"><td class="py-2 font-mono">Hour</td><td class="py-2 dt-text-2">0-23</td><td class="py-2 dt-text-2">* , - /</td></tr>
+              <tr class="border-b border-(--border)"><td class="py-2 font-mono">Day of Month</td><td class="py-2 dt-text-2">1-31</td><td class="py-2 dt-text-2">* , - / ?</td></tr>
+              <tr class="border-b border-(--border)"><td class="py-2 font-mono">Month</td><td class="py-2 dt-text-2">1-12</td><td class="py-2 dt-text-2">* , - /</td></tr>
+              <tr><td class="py-2 font-mono">Day of Week</td><td class="py-2 dt-text-2">0-7 (0=Sun)</td><td class="py-2 dt-text-2">* , - / ?</td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">*</code> = any value |
-            <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">,</code> = list |
-            <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">-</code> = range |
-            <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">/</code> = step (e.g., */5)
+          <p class="dt-meta mt-3">
+            <code class="dt-code">*</code> = any value |
+            <code class="dt-code">,</code> = list |
+            <code class="dt-code">-</code> = range |
+            <code class="dt-code">/</code> = step (e.g., */5)
           </p>
         </div>
       </div>
@@ -169,16 +171,16 @@ export class CrontabEvaluator {
       ? ['Second', 'Minute', 'Hour', 'Day of Month', 'Month', 'Day of Week']
       : ['Minute', 'Hour', 'Day of Month', 'Month', 'Day of Week'];
 
-    let fieldsHtml = '<table class="w-full text-sm"><thead><tr><th class="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">Position</th><th class="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">Field</th><th class="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">Value</th><th class="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">Meaning</th></tr></thead><tbody>';
+    let fieldsHtml = '<table class="w-full text-[13.5px]"><thead><tr><th class="text-left py-1.5 font-medium dt-text-3">Position</th><th class="text-left py-1.5 font-medium dt-text-3">Field</th><th class="text-left py-1.5 font-medium dt-text-3">Value</th><th class="text-left py-1.5 font-medium dt-text-3">Meaning</th></tr></thead><tbody>';
 
     for (let i = 0; i < parts.length; i++) {
       const val = parts[i];
       const meaning = this.describeValue(val, fieldNames[i]);
-      fieldsHtml += `<tr class="border-b border-gray-100 dark:border-gray-800">
-        <td class="py-1.5 text-gray-500 dark:text-gray-400">${i + 1}</td>
-        <td class="py-1.5 font-medium text-gray-700 dark:text-gray-300">${fieldNames[i]}</td>
-        <td class="py-1.5 font-mono text-gray-900 dark:text-gray-100">${this.escapeHtml(val)}</td>
-        <td class="py-1.5 text-gray-600 dark:text-gray-400">${meaning}</td>
+      fieldsHtml += `<tr class="border-b border-(--border) last:border-0">
+        <td class="py-2 dt-text-3">${i + 1}</td>
+        <td class="py-2 font-medium">${fieldNames[i]}</td>
+        <td class="py-2 font-mono dt-accent">${this.escapeHtml(val)}</td>
+        <td class="py-2 dt-text-2">${meaning}</td>
       </tr>`;
     }
 
@@ -193,12 +195,12 @@ export class CrontabEvaluator {
       const local = d.toLocaleString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
       const utc = d.toISOString();
       nextHtml += `
-        <div class="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg">
-          <div>
-            <span class="inline-block w-6 text-center text-sm font-medium text-blue-600 dark:text-blue-400">${i + 1}</span>
-            <span class="ml-2 text-sm text-gray-900 dark:text-gray-100">${local}</span>
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-(--surface-2) px-3.5 py-2.5">
+          <div class="flex items-baseline gap-2.5">
+            <span class="grid h-5 w-5 place-items-center rounded-md bg-(--accent-soft) text-xs font-semibold dt-accent">${i + 1}</span>
+            <span class="text-[13.5px]">${local}</span>
           </div>
-          <span class="text-xs font-mono text-gray-500 dark:text-gray-400">${utc}</span>
+          <span class="dt-meta">${utc}</span>
         </div>
       `;
     }
@@ -219,9 +221,9 @@ export class CrontabEvaluator {
     let html = '';
     for (const ex of examples) {
       html += `
-        <button data-cron="${ex.expr}" class="example-cron-btn w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left">
-          <code class="text-sm font-mono text-blue-700 dark:text-blue-300">${ex.expr}</code>
-          <span class="text-xs text-gray-500 dark:text-gray-400">${ex.desc}</span>
+        <button data-cron="${ex.expr}" type="button" class="example-cron-btn flex w-full items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-left transition-colors hover:border-(--border) hover:bg-(--surface-2)">
+          <code class="font-mono text-[13px] dt-accent">${ex.expr}</code>
+          <span class="text-xs dt-text-3">${ex.desc}</span>
         </button>
       `;
     }

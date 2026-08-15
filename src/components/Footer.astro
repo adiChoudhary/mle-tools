@@ -1,0 +1,19 @@
+---
+/**
+ * Shared minimal site footer.
+ */
+import { icon } from '../utils/icons.ts';
+---
+
+<footer class="dt-divider mt-auto" role="contentinfo">
+  <div class="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-[13px] dt-text-2 sm:px-6 md:flex-row lg:px-8">
+    <div class="flex items-center gap-2">
+      <span class="grid h-5 w-5 place-items-center rounded-[6px] bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white" aria-hidden="true" set:html={icon('box', 11, 2.25)}></span>
+      <span>© 2026 DevToolbox</span>
+    </div>
+    <p class="flex items-center gap-1.5 text-[12.5px] dt-text-3">
+      <span aria-hidden="true" set:html={icon('shield-check', 14)}></span>
+      <span>100% local processing — no data ever leaves your browser</span>
+    </p>
+  </div>
+</footer>

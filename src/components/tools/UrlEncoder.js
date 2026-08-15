@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 
 export class UrlEncoder {
   constructor(element) {
@@ -23,54 +24,55 @@ export class UrlEncoder {
     this.element.innerHTML = `
       <div class="space-y-6">
         <!-- Tab Selector -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1 inline-flex">
-          <button id="tab-encoder" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white" data-tab="encoder">URL Encode/Decode</button>
-          <button id="tab-query" class="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="query">Query Params</button>
-          <button id="tab-objectid" class="px-4 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="objectid">ObjectId Decoder</button>
+        <div class="dt-seg">
+          <button id="tab-encoder" class="dt-seg-btn dt-seg-btn-active" data-tab="encoder">URL Encode/Decode</button>
+          <button id="tab-query" class="dt-seg-btn" data-tab="query">Query Params</button>
+          <button id="tab-objectid" class="dt-seg-btn" data-tab="objectid">ObjectId Decoder</button>
         </div>
 
         <!-- URL Encode/Decode Panel -->
         <div id="panel-encoder" class="space-y-4">
           <!-- Mode toggle -->
-          <div class="flex items-center space-x-3">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Mode:</span>
-            <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
-              <button id="mode-encode" class="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white" data-mode="encode">Encode</button>
-              <button id="mode-decode" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-mode="decode">Decode</button>
+          <div class="flex items-center gap-3">
+            <span class="dt-label">Mode:</span>
+            <div class="dt-seg">
+              <button id="mode-encode" class="dt-seg-btn dt-seg-btn-active" data-mode="encode">Encode</button>
+              <button id="mode-decode" class="dt-seg-btn" data-mode="decode">Decode</button>
             </div>
           </div>
 
           <!-- Input -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label for="url-input" id="url-input-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Text Input</label>
-              <div class="flex items-center space-x-2">
-                <button id="load-sample-btn" class="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors">Load Sample</button>
-                <button id="clear-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+              <label for="url-input" id="url-input-label" class="dt-label">Text Input</label>
+              <div class="flex items-center gap-2">
+                <button id="load-sample-btn" type="button" class="dt-btn dt-btn-soft dt-btn-sm">Load Sample</button>
+                <button id="clear-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
               </div>
             </div>
-            <textarea id="url-input" class="w-full h-40 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter URL or text..." spellcheck="false"></textarea>
+            <textarea id="url-input" class="dt-field h-40" placeholder="Enter URL or text..." spellcheck="false"></textarea>
           </div>
 
           <!-- Convert -->
-          <button id="convert-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Encode</button>
+          <button id="convert-btn" type="button" class="dt-btn dt-btn-primary">Encode</button>
 
           <!-- Error -->
-          <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p id="error-message" class="text-sm text-red-700 dark:text-red-300"></p>
+          <div id="error-container" class="dt-box dt-box-error hidden">
+            <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+            <p id="error-message" class="text-[13px] text-red-600 dark:text-red-400"></p>
           </div>
 
           <!-- Output -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label id="url-output-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Encoded Output</label>
-              <div class="flex items-center space-x-2">
-                <span id="output-size" class="text-sm text-gray-500 dark:text-gray-400">0 bytes</span>
-                <button id="copy-btn" class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Copy</button>
+              <label id="url-output-label" class="dt-label">Encoded Output</label>
+              <div class="flex items-center gap-2">
+                <span id="output-size" class="dt-meta">0 bytes</span>
+                <button id="copy-btn" type="button" class="dt-btn dt-btn-sm">Copy</button>
               </div>
             </div>
-            <div id="url-output" class="w-full min-h-32 max-h-64 overflow-auto px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 font-mono text-sm whitespace-pre-wrap break-all">
-              <div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>
+            <div id="url-output" class="dt-field min-h-32 max-h-64 overflow-auto whitespace-pre-wrap break-all">
+              <div class="dt-empty">Output will appear here...</div>
             </div>
           </div>
         </div>
@@ -78,26 +80,26 @@ export class UrlEncoder {
         <!-- Query Params Panel -->
         <div id="panel-query" class="hidden space-y-4">
           <div class="space-y-2">
-            <label for="query-url-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL with Query Parameters</label>
-            <input id="query-url-input" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com/path?name=Alice&age=30" />
+            <label for="query-url-input" class="dt-label">URL with Query Parameters</label>
+            <input id="query-url-input" type="text" class="dt-field" placeholder="https://example.com/path?name=Alice&age=30" />
           </div>
-          <button id="parse-query-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Parse Query Params</button>
+          <button id="parse-query-btn" type="button" class="dt-btn dt-btn-primary">Parse Query Params</button>
           <div id="query-output" class="space-y-2">
-            <div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter a URL and click Parse to see the parameters...</div>
+            <div class="dt-empty text-sm">Enter a URL and click Parse to see the parameters...</div>
           </div>
         </div>
 
         <!-- ObjectId Decoder Panel -->
         <div id="panel-objectid" class="hidden space-y-4">
           <div class="space-y-2">
-            <label for="objectid-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MongoDB ObjectId (24 hex characters)</label>
+            <label for="objectid-input" class="dt-label">MongoDB ObjectId (24 hex characters)</label>
             <div class="flex gap-3">
-              <input id="objectid-input" type="text" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="507f1f77bcf86cd799439011" />
-              <button id="decode-objectid-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">Decode</button>
+              <input id="objectid-input" type="text" class="dt-field flex-1" placeholder="507f1f77bcf86cd799439011" />
+              <button id="decode-objectid-btn" type="button" class="dt-btn dt-btn-primary whitespace-nowrap">Decode</button>
             </div>
           </div>
           <div id="objectid-output" class="space-y-2">
-            <div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter an ObjectId to decode its components...</div>
+            <div class="dt-empty text-sm">Enter an ObjectId to decode its components...</div>
           </div>
         </div>
       </div>
@@ -155,7 +157,7 @@ export class UrlEncoder {
       this.urlInput.value = '';
       this.currentInput = '';
       this.currentOutput = '';
-      this.urlOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>';
+      this.urlOutput.innerHTML = '<div class="dt-empty">Output will appear here...</div>';
       this.outputSize.textContent = '0 bytes';
       this.clearError();
     });
@@ -179,7 +181,7 @@ export class UrlEncoder {
     // Update tab buttons
     this.element.querySelectorAll('[data-tab]').forEach(btn => {
       const active = btn.dataset.tab === tab;
-      btn.className = `px-4 py-2 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+      btn.className = active ? 'dt-seg-btn dt-seg-btn-active' : 'dt-seg-btn';
     });
 
     // Show/hide panels
@@ -194,7 +196,7 @@ export class UrlEncoder {
 
     this.element.querySelectorAll('[data-mode]').forEach(btn => {
       const active = btn.dataset.mode === mode;
-      btn.className = `px-4 py-1.5 text-sm font-medium rounded-md ${active ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+      btn.className = active ? 'dt-seg-btn dt-seg-btn-active' : 'dt-seg-btn';
     });
 
     this.urlInputLabel.textContent = isEncode ? 'Text Input' : 'URL-encoded Input';
@@ -254,7 +256,7 @@ export class UrlEncoder {
   }
 
   clearOutput() {
-    this.urlOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 italic">Output will appear here...</div>';
+    this.urlOutput.innerHTML = '<div class="dt-empty">Output will appear here...</div>';
     this.currentOutput = '';
     this.outputSize.textContent = '0 bytes';
   }
@@ -264,7 +266,7 @@ export class UrlEncoder {
   parseQueryParams() {
     const url = this.queryUrlInput.value.trim();
     if (!url) {
-      this.queryOutput.innerHTML = '<p class="text-sm text-yellow-600 dark:text-yellow-400">Enter a URL to parse.</p>';
+      this.queryOutput.innerHTML = '<p class="dt-box p-3! text-[13px] text-amber-600 dark:text-amber-400">Enter a URL to parse.</p>';
       return;
     }
 
@@ -280,34 +282,35 @@ export class UrlEncoder {
       const entries = [...params.entries()];
 
       if (entries.length === 0) {
-        this.queryOutput.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No query parameters found.</p>';
+        this.queryOutput.innerHTML = '<p class="dt-empty text-sm">No query parameters found.</p>';
         return;
       }
 
       let html = `
         <div class="mb-3">
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">${entries.length} parameter${entries.length > 1 ? 's' : ''} found</p>
+          <p class="dt-label mb-1.5">${entries.length} parameter${entries.length > 1 ? 's' : ''} found</p>
           <div class="overflow-x-auto">
-            <table class="min-w-full text-sm border-collapse border border-gray-200 dark:border-gray-700 rounded-lg">
-              <thead>
-                <tr class="bg-gray-100 dark:bg-gray-900/50">
-                  <th class="text-left px-3 py-2 font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">Key</th>
-                  <th class="text-left px-3 py-2 font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">Value</th>
-                </tr>
-              </thead>
-              <tbody>
+            <div class="dt-card overflow-hidden p-0!">
+              <table class="min-w-full text-[13.5px] border-collapse">
+                <thead>
+                  <tr class="bg-(--surface-2)">
+                    <th class="text-left px-3.5 py-2.5 font-medium dt-text-2 border-b border-(--border)">Key</th>
+                    <th class="text-left px-3.5 py-2.5 font-medium dt-text-2 border-b border-(--border)">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
       `;
 
       for (const [key, value] of entries) {
         html += `
-          <tr class="border-b border-gray-100 dark:border-gray-800">
-            <td class="px-3 py-2 font-mono text-blue-600 dark:text-blue-400">${this.escapeHtml(key)}</td>
-            <td class="px-3 py-2 font-mono text-gray-900 dark:text-gray-100">${this.escapeHtml(value)}</td>
+          <tr class="border-b border-(--border) last:border-0">
+            <td class="px-3.5 py-2.5 font-mono dt-accent">${this.escapeHtml(key)}</td>
+            <td class="px-3.5 py-2.5 font-mono">${this.escapeHtml(value)}</td>
           </tr>
         `;
       }
 
-      html += '</tbody></table></div>';
+      html += '</tbody></table></div></div>';
 
       // JSON representation
       const obj = {};
@@ -322,14 +325,14 @@ export class UrlEncoder {
 
       html += `
         <div class="mt-4">
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">JSON representation:</p>
-          <pre class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 text-sm font-mono text-gray-900 dark:text-gray-100 overflow-x-auto">${this.escapeHtml(JSON.stringify(obj, null, 2))}</pre>
+          <p class="dt-label mb-1.5">JSON representation:</p>
+          <pre class="dt-field w-auto! overflow-x-auto">${this.escapeHtml(JSON.stringify(obj, null, 2))}</pre>
         </div>
       `;
 
       this.queryOutput.innerHTML = html;
     } catch (error) {
-      this.queryOutput.innerHTML = `<p class="text-sm text-red-600 dark:text-red-400">Failed to parse: ${this.escapeHtml(error.message)}</p>`;
+      this.queryOutput.innerHTML = `<p class="text-[13px] text-red-600 dark:text-red-400">Failed to parse: ${this.escapeHtml(error.message)}</p>`;
     }
   }
 
@@ -341,8 +344,9 @@ export class UrlEncoder {
     // Validate: must be 24 hex chars
     if (!/^[0-9a-fA-F]{24}$/.test(input)) {
       this.objectidOutput.innerHTML = `
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p class="text-sm text-red-700 dark:text-red-300">Invalid ObjectId. Must be exactly 24 hexadecimal characters (0-9, a-f).</p>
+        <div class="dt-box dt-box-error">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <p class="text-[13px] text-red-600 dark:text-red-400">Invalid ObjectId. Must be exactly 24 hexadecimal characters (0-9, a-f).</p>
         </div>
       `;
       return;
@@ -365,55 +369,55 @@ export class UrlEncoder {
     const counter = parseInt(counterHex, 16);
 
     let html = `
-      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-        <div class="flex items-center space-x-2 text-green-600 dark:text-green-400 mb-2">
-          <span class="text-lg">✅</span>
+      <div class="dt-panel p-4 space-y-4">
+        <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+          ${icon('check-circle', 17)}
           <span class="text-sm font-medium">Valid MongoDB ObjectId</span>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-3.5">
           <div>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Timestamp (4 bytes)</span>
-            <div class="mt-1">
-              <span class="font-mono text-sm text-gray-900 dark:text-gray-100">${timestampHex}</span>
-              <span class="mx-2 text-gray-400">→</span>
-              <span class="text-sm text-gray-900 dark:text-gray-100">${timestamp.toLocaleString()}</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(UTC: ${timestamp.toISOString()})</span>
+            <span class="dt-meta">Timestamp (4 bytes)</span>
+            <div class="mt-1 flex flex-wrap items-baseline gap-2">
+              <span class="font-mono text-[13.5px]">${timestampHex}</span>
+              <span class="dt-text-3">→</span>
+              <span class="text-[13.5px]">${timestamp.toLocaleString()}</span>
+              <span class="dt-meta">(UTC: ${timestamp.toISOString()})</span>
             </div>
           </div>
 
           <div>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Machine Identifier (3 bytes)</span>
-            <div class="mt-1">
-              <span class="font-mono text-sm text-gray-900 dark:text-gray-100">${machineHex}</span>
-              <span class="mx-2 text-gray-400">→</span>
-              <span class="text-sm text-gray-900 dark:text-gray-100">${machine} (decimal)</span>
+            <span class="dt-meta">Machine Identifier (3 bytes)</span>
+            <div class="mt-1 flex flex-wrap items-baseline gap-2">
+              <span class="font-mono text-[13.5px]">${machineHex}</span>
+              <span class="dt-text-3">→</span>
+              <span class="text-[13.5px]">${machine} (decimal)</span>
             </div>
           </div>
 
           <div>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Process ID (2 bytes)</span>
-            <div class="mt-1">
-              <span class="font-mono text-sm text-gray-900 dark:text-gray-100">${processHex}</span>
-              <span class="mx-2 text-gray-400">→</span>
-              <span class="text-sm text-gray-900 dark:text-gray-100">${processId}</span>
+            <span class="dt-meta">Process ID (2 bytes)</span>
+            <div class="mt-1 flex flex-wrap items-baseline gap-2">
+              <span class="font-mono text-[13.5px]">${processHex}</span>
+              <span class="dt-text-3">→</span>
+              <span class="text-[13.5px]">${processId}</span>
             </div>
           </div>
 
           <div>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Counter (3 bytes)</span>
-            <div class="mt-1">
-              <span class="font-mono text-sm text-gray-900 dark:text-gray-100">${counterHex}</span>
-              <span class="mx-2 text-gray-400">→</span>
-              <span class="text-sm text-gray-900 dark:text-gray-100">${counter}</span>
+            <span class="dt-meta">Counter (3 bytes)</span>
+            <div class="mt-1 flex flex-wrap items-baseline gap-2">
+              <span class="font-mono text-[13.5px]">${counterHex}</span>
+              <span class="dt-text-3">→</span>
+              <span class="text-[13.5px]">${counter}</span>
             </div>
           </div>
         </div>
 
-        <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
-          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Raw hex breakdown</span>
-          <div class="mt-1 font-mono text-xs text-gray-900 dark:text-gray-100">
-            <span class="text-blue-600 dark:text-blue-400">${timestampHex}</span><span class="text-green-600 dark:text-green-400">${machineHex}</span><span class="text-yellow-600 dark:text-yellow-400">${processHex}</span><span class="text-purple-600 dark:text-purple-400">${counterHex}</span>
+        <div class="border-t border-(--border) pt-3.5">
+          <span class="dt-meta">Raw hex breakdown</span>
+          <div class="mt-1.5 font-mono text-xs">
+            <span class="dt-accent">${timestampHex}</span><span class="text-emerald-600 dark:text-emerald-400">${machineHex}</span><span class="text-amber-600 dark:text-amber-400">${processHex}</span><span class="text-fuchsia-600 dark:text-fuchsia-400">${counterHex}</span>
           </div>
         </div>
       </div>

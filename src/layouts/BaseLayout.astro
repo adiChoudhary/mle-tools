@@ -82,7 +82,7 @@ const tools = TOOLS;
       (function () {
         try {
           var t = localStorage.getItem('devtoolbox-theme');
-          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = t ? t === 'dark' : true;
           if (dark) document.documentElement.classList.add('dark');
         } catch (e) {}
       })();
@@ -91,7 +91,7 @@ const tools = TOOLS;
     <!-- Schema.org Structured Data (WebSite) -->
     <script type="application/ld+json" set:html={JSON.stringify(siteData)}></script>
   </head>
-  <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <body class="dt-shell h-full">
     <!-- Each page provides its own main-content landmark and skip link
          (ToolLayout / index / 404); this layout no longer wraps the slot
          in a second main element. -->

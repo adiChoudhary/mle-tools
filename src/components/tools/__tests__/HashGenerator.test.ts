@@ -38,7 +38,7 @@ describe('HashGenerator UI Component', () => {
       const generator = new HashGenerator(container);
       await generator.init();
       const md5Btn = document.getElementById('alg-md5');
-      expect(md5Btn?.classList.contains('border-blue-500')).toBe(true);
+      expect(md5Btn?.classList.contains('dt-alg-btn-active')).toBe(true);
     });
 
     it('should render "all algorithms" checkbox', async () => {
@@ -101,7 +101,7 @@ describe('HashGenerator UI Component', () => {
     it('should render info section about hash algorithms', async () => {
       const generator = new HashGenerator(container);
       await generator.init();
-      const infoSection = container.querySelector('[class*="bg-blue-50"]');
+      const infoSection = container.querySelector('[class*="dt-box-info"]');
       expect(infoSection).toBeDefined();
     });
   });
@@ -113,7 +113,7 @@ describe('HashGenerator UI Component', () => {
       const sha1Btn = document.getElementById('alg-sha1') as HTMLButtonElement;
       sha1Btn.click();
       const sha1BtnActive = document.getElementById('alg-sha1');
-      expect(sha1BtnActive?.classList.contains('border-blue-500')).toBe(true);
+      expect(sha1BtnActive?.classList.contains('dt-alg-btn-active')).toBe(true);
     });
 
     it('should switch to SHA-256 algorithm', async () => {
@@ -122,7 +122,7 @@ describe('HashGenerator UI Component', () => {
       const sha256Btn = document.getElementById('alg-sha256') as HTMLButtonElement;
       sha256Btn.click();
       const sha256BtnActive = document.getElementById('alg-sha256');
-      expect(sha256BtnActive?.classList.contains('border-blue-500')).toBe(true);
+      expect(sha256BtnActive?.classList.contains('dt-alg-btn-active')).toBe(true);
     });
 
     it('should switch to SHA-512 algorithm', async () => {
@@ -131,7 +131,7 @@ describe('HashGenerator UI Component', () => {
       const sha512Btn = document.getElementById('alg-sha512') as HTMLButtonElement;
       sha512Btn.click();
       const sha512BtnActive = document.getElementById('alg-sha512');
-      expect(sha512BtnActive?.classList.contains('border-blue-500')).toBe(true);
+      expect(sha512BtnActive?.classList.contains('dt-alg-btn-active')).toBe(true);
     });
 
     it('should toggle all algorithms checkbox', async () => {

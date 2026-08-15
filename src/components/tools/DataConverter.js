@@ -7,6 +7,7 @@ import { WorkerOperation } from "../../utils/worker-interface.ts";
 import { WorkerPool, withTimeout } from "../../utils/worker-pool.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 import DataProcessorWorkerUrl from "../../workers/data-processor.ts?worker&url";
 
 export class DataConverter {
@@ -40,14 +41,12 @@ export class DataConverter {
     this.element.innerHTML = `
       <div class="space-y-6">
         <!-- Conversion Mode Selector -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Conversion Mode</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="dt-panel p-4">
+          <h3 class="dt-label mb-3">Conversion Mode</h3>
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
             <button
               id="mode-csv-to-json"
-              class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all
-                     border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300
-                     hover:border-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="dt-alg-btn dt-alg-btn-active"
               data-mode="csv-to-json"
               aria-pressed="true"
             >
@@ -55,9 +54,7 @@ export class DataConverter {
             </button>
             <button
               id="mode-json-to-csv"
-              class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all
-                     border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400
-                     hover:border-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="dt-alg-btn"
               data-mode="json-to-csv"
               aria-pressed="false"
             >
@@ -65,9 +62,7 @@ export class DataConverter {
             </button>
             <button
               id="mode-json-to-yaml"
-              class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all
-                     border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400
-                     hover:border-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="dt-alg-btn"
               data-mode="json-to-yaml"
               aria-pressed="false"
             >
@@ -75,9 +70,7 @@ export class DataConverter {
             </button>
             <button
               id="mode-yaml-to-json"
-              class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all
-                     border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400
-                     hover:border-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="dt-alg-btn"
               data-mode="yaml-to-json"
               aria-pressed="false"
             >
@@ -87,18 +80,13 @@ export class DataConverter {
         </div>
 
         <!-- Options Panel -->
-        <div id="options-panel" class="bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Options</h3>
-          <div class="flex flex-wrap items-center gap-6">
+        <div id="options-panel" class="dt-card p-4">
+          <h3 class="dt-label mb-3">Options</h3>
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
             <!-- Delimiter (CSV modes) -->
-            <div id="delimiter-option" class="flex items-center space-x-3">
-              <label for="delimiter-select" class="text-sm text-gray-700 dark:text-gray-300">Delimiter:</label>
-              <select
-                id="delimiter-select"
-                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+            <div id="delimiter-option" class="flex items-center gap-3">
+              <label for="delimiter-select" class="text-[13.5px] dt-text-2">Delimiter:</label>
+              <select id="delimiter-select" class="dt-field w-auto! px-2.5! py-1.5! text-[13px]!">
                 <option value="auto">Auto-detect</option>
                 <option value=",">Comma (,)</option>
                 <option value=";">Semicolon (;)</option>
@@ -108,14 +96,9 @@ export class DataConverter {
             </div>
 
             <!-- YAML indent -->
-            <div id="yaml-indent-option" class="hidden flex items-center space-x-3">
-              <label for="yaml-indent-select" class="text-sm text-gray-700 dark:text-gray-300">Indent:</label>
-              <select
-                id="yaml-indent-select"
-                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+            <div id="yaml-indent-option" class="hidden flex items-center gap-3">
+              <label for="yaml-indent-select" class="text-[13.5px] dt-text-2">Indent:</label>
+              <select id="yaml-indent-select" class="dt-field w-auto! px-2.5! py-1.5! text-[13px]!">
                 <option value="2">2 spaces</option>
                 <option value="4">4 spaces</option>
                 <option value="8">8 spaces</option>
@@ -123,14 +106,9 @@ export class DataConverter {
             </div>
 
             <!-- YAML line width -->
-            <div id="yaml-linewidth-option" class="hidden flex items-center space-x-3">
-              <label for="yaml-linewidth-select" class="text-sm text-gray-700 dark:text-gray-300">Line Width:</label>
-              <select
-                id="yaml-linewidth-select"
-                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+            <div id="yaml-linewidth-option" class="hidden flex items-center gap-3">
+              <label for="yaml-linewidth-select" class="text-[13.5px] dt-text-2">Line Width:</label>
+              <select id="yaml-linewidth-select" class="dt-field w-auto! px-2.5! py-1.5! text-[13px]!">
                 <option value="80">80 chars</option>
                 <option value="120">120 chars</option>
                 <option value="0">No wrap</option>
@@ -138,31 +116,29 @@ export class DataConverter {
             </div>
 
             <!-- Detected delimiter info -->
-            <div id="delimiter-info" class="hidden flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <div id="delimiter-info" class="hidden flex items-center gap-2 text-[13px] dt-text-3">
               <span>Detected:</span>
-              <span id="detected-delimiter" class="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded"></span>
+              <span id="detected-delimiter" class="dt-code"></span>
             </div>
           </div>
         </div>
 
         <!-- Input Section -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="data-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="data-input" class="dt-label">
               <span id="input-label">CSV Input</span>
             </label>
-            <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-              <span id="input-size">0 bytes</span>
-              <span id="memory-status" class="hidden px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-xs">
+            <div class="flex items-center gap-2">
+              <span id="input-size" class="dt-meta">0 bytes</span>
+              <span id="memory-status" class="hidden rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400">
                 Memory limit exceeded
               </span>
             </div>
           </div>
           <textarea
             id="data-input"
-            class="w-full h-64 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="dt-field h-64"
             placeholder="Paste your data here..."
             spellcheck="false"
           ></textarea>
@@ -172,22 +148,21 @@ export class DataConverter {
         <div class="flex flex-wrap items-center gap-3">
           <button
             id="convert-btn"
-            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            type="button"
+            class="dt-btn dt-btn-primary"
           >
             Convert
           </button>
           <button
             id="clear-btn"
-            class="px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+            type="button"
+            class="dt-btn"
           >
             Clear
           </button>
 
           <!-- Stats display -->
-          <div id="stats-display" class="hidden ml-auto flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+          <div id="stats-display" class="dt-meta ml-auto hidden flex items-center gap-4">
             <span id="row-count"></span>
             <span id="col-count"></span>
           </div>
@@ -195,7 +170,7 @@ export class DataConverter {
 
         <!-- Processing Indicator -->
         <div id="processing-indicator" class="hidden">
-          <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+          <div class="dt-accent flex items-center gap-2 text-[13px]">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -205,44 +180,36 @@ export class DataConverter {
         </div>
 
         <!-- Error Display -->
-        <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                Conversion Error
-              </h3>
-              <p id="error-message" class="mt-1 text-sm text-red-700 dark:text-red-300"></p>
-            </div>
+        <div id="error-container" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <div>
+            <h3 class="text-sm font-medium text-red-700 dark:text-red-300">
+              Conversion Error
+            </h3>
+            <p id="error-message" class="mt-0.5 text-[13px] text-red-600 dark:text-red-400"></p>
           </div>
         </div>
 
         <!-- Output Section -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label for="data-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label for="data-output" class="dt-label">
               <span id="output-label">JSON Output</span>
             </label>
-            <div class="flex items-center space-x-2">
-              <span id="output-size" class="text-sm text-gray-500 dark:text-gray-400">0 bytes</span>
+            <div class="flex items-center gap-2">
+              <span id="output-size" class="dt-meta">0 bytes</span>
               <button
                 id="copy-btn"
-                class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
-                       text-gray-700 dark:text-gray-300 rounded transition-colors
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+                type="button"
+                class="dt-btn dt-btn-sm"
                 aria-label="Copy output to clipboard"
               >
                 Copy
               </button>
               <button
                 id="download-btn"
-                class="px-3 py-1 text-sm bg-green-100 hover:bg-green-200 dark:bg-green-700 dark:hover:bg-green-600
-                       text-green-700 dark:text-green-300 rounded transition-colors
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                type="button"
+                class="dt-btn dt-btn-sm"
                 aria-label="Download output as file"
               >
                 Download
@@ -251,42 +218,38 @@ export class DataConverter {
           </div>
           <div
             id="data-output"
-            class="w-full min-h-64 max-h-96 overflow-auto px-3 py-2 border border-gray-300 dark:border-gray-700
-                   rounded-lg bg-gray-50 dark:bg-gray-800 font-mono text-sm"
+            class="dt-field min-h-64 max-h-96 overflow-auto"
           >
-            <div class="text-gray-500 dark:text-gray-400 italic">
+            <div class="dt-empty">
               Enter data above and click Convert to see the result here...
             </div>
           </div>
         </div>
 
         <!-- Examples -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Quick Examples</h3>
+        <div class="dt-panel p-4">
+          <h3 class="dt-label mb-3">Quick Examples</h3>
           <div class="flex flex-wrap gap-2">
             <button
               id="example-csv"
-              class="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700
-                     text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              type="button"
+              class="dt-btn dt-btn-soft dt-btn-sm"
               data-example="csv"
             >
               Sample CSV
             </button>
             <button
               id="example-json-array"
-              class="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700
-                     text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              type="button"
+              class="dt-btn dt-btn-soft dt-btn-sm"
               data-example="json-array"
             >
               Sample JSON Array
             </button>
             <button
               id="example-yaml"
-              class="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700
-                     text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              type="button"
+              class="dt-btn dt-btn-soft dt-btn-sm"
               data-example="yaml"
             >
               Sample YAML
@@ -374,15 +337,7 @@ export class DataConverter {
     this.modeButtons.forEach(btn => {
       const isActive = btn.dataset.mode === mode;
       btn.setAttribute('aria-pressed', isActive);
-      if (isActive) {
-        btn.className = 'px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all' +
-          ' border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' +
-          ' hover:border-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
-      } else {
-        btn.className = 'px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all' +
-          ' border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400' +
-          ' hover:border-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
-      }
+      btn.className = isActive ? 'dt-alg-btn dt-alg-btn-active' : 'dt-alg-btn';
     });
 
     // Update labels and placeholders
@@ -624,7 +579,7 @@ export class DataConverter {
       }
     }
 
-    this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap text-gray-900 dark:text-gray-100">${this.escapeHtml(this.currentOutput)}</pre>`;
+    this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap break-words">${this.escapeHtml(this.currentOutput)}</pre>`;
 
     // Update output size
     const sizeBytes = new Blob([this.currentOutput]).size;
@@ -642,7 +597,7 @@ export class DataConverter {
 
   clearOutput() {
     this.outputContainer.innerHTML = `
-      <div class="text-gray-500 dark:text-gray-400 italic">
+      <div class="dt-empty">
         Enter data above and click Convert to see the result here...
       </div>
     `;
@@ -670,11 +625,11 @@ export class DataConverter {
 
       const originalText = this.copyBtn.textContent;
       this.copyBtn.textContent = 'Copied!';
-      this.copyBtn.classList.add('text-green-600', 'dark:text-green-400');
+      this.copyBtn.classList.add('dt-accent');
 
       setTimeout(() => {
         this.copyBtn.textContent = originalText;
-        this.copyBtn.classList.remove('text-green-600', 'dark:text-green-400');
+        this.copyBtn.classList.remove('dt-accent');
       }, 2000);
     } catch (error) {
       console.error('Failed to copy:', error);

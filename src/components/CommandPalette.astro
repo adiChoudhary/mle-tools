@@ -8,6 +8,8 @@
  * - ARIA roles for screen readers (dialog, listbox, option)
  * - Zero-bundle: bundled by Vite as an external module (CSP `script-src 'self'`)
  */
+import { icon } from '../utils/icons.ts';
+
 export interface Props {
   tools: Array<{ name: string; path: string; icon: string; description: string }>;
 }
@@ -29,25 +31,25 @@ const { tools } = Astro.props;
   hidden
 >
   <!-- Backdrop -->
-  <div class="command-palette-backdrop absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+  <div class="command-palette-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
   <!-- Panel -->
-  <div class="relative flex min-h-screen items-start justify-center px-4 pt-24 text-center sm:p-0">
-    <div class="relative w-full max-w-xl overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5">
-
+  <div class="relative flex min-h-screen items-start justify-center px-4 pt-[12vh] text-center sm:p-0 sm:pt-[14vh]">
+    <div
+      class="relative w-full max-w-xl overflow-hidden rounded-2xl text-left shadow-[0_24px_80px_-16px_rgba(0,0,0,0.5)] ring-1 ring-(--border-strong) dt-panel p-0!"
+      style="background: var(--surface)"
+    >
       <!-- Search bar -->
-      <div class="flex items-center border-b border-gray-200 dark:border-gray-700 px-4">
-        <svg class="mr-3 h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+      <div class="flex items-center border-b border-(--border) px-4">
+        <span class="mr-3 shrink-0 dt-text-3" aria-hidden="true" set:html={icon('search', 16)}></span>
         <input
-          class="command-palette-input w-full border-0 bg-transparent py-4 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-0 outline-none"
+          class="command-palette-input w-full border-0 bg-transparent py-4 text-sm outline-none placeholder:text-(--text-3)"
           type="search"
           placeholder="Search tools..."
           autocomplete="off"
           aria-label="Search tools"
         />
-        <kbd class="ml-2 inline-flex items-center rounded border border-gray-300 dark:border-gray-600 px-1.5 py-0.5 font-mono text-[10px] text-gray-400 select-none">ESC</kbd>
+        <span class="dt-kbd ml-2 shrink-0">esc</span>
       </div>
 
       <!-- Results -->
@@ -58,8 +60,17 @@ const { tools } = Astro.props;
       ></ul>
 
       <!-- Empty state -->
-      <div class="command-palette-empty hidden py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+      <div class="command-palette-empty hidden py-10 text-center text-sm dt-text-3">
         No tools found matching your search.
+      </div>
+
+      <!-- Footer hints -->
+      <div class="flex items-center gap-4 border-t border-(--border) px-4 py-2.5 text-[11.5px] dt-text-3">
+        <span class="flex items-center gap-1.5"><span class="dt-kbd">↑</span><span class="dt-kbd">↓</span> navigate</span>
+        <span class="flex items-center gap-1.5"><span class="dt-kbd">↵</span> open</span>
+        <span class="ml-auto flex items-center gap-1.5">
+          <span aria-hidden="true" set:html={icon('lock', 12)}></span> runs in your browser
+        </span>
       </div>
     </div>
   </div>
@@ -71,144 +82,153 @@ const { tools } = Astro.props;
   (server-rendered JSON); the module runs after DOM parse, so the overlay exists.
 -->
 <script>
-(function () {
-  // ── DOM refs ──
-  var overlay = document.getElementById('command-palette-overlay');
-  if (!overlay) return;
+  import { icon } from '../utils/icons.ts';
 
-  var backdrop = overlay.querySelector('.command-palette-backdrop');
-  var input = overlay.querySelector('.command-palette-input');
-  var list = overlay.querySelector('.command-palette-list');
-  var empty = overlay.querySelector('.command-palette-empty');
+  (function () {
+    // ── DOM refs ──
+    var overlay = document.getElementById('command-palette-overlay');
+    if (!overlay) return;
 
-  // ── State ──
-  var tools = JSON.parse(overlay.dataset.tools || '[]');
-  var filtered = [];
-  var activeIdx = -1;
-  var isOpen = false;
-  var lastFocused = null;
+    var backdrop = overlay.querySelector('.command-palette-backdrop');
+    var input = overlay.querySelector('.command-palette-input');
+    var list = overlay.querySelector('.command-palette-list');
+    var empty = overlay.querySelector('.command-palette-empty');
 
-  // ── Helpers ──
-  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function hl(text, q) {
-    if (!q) return esc(text);
-    var i = text.toLowerCase().indexOf(q);
-    if (i < 0) return esc(text);
-    return esc(text.slice(0,i))
-      + '<mark class="bg-yellow-200 dark:bg-yellow-700/50 rounded-sm px-0.5 -mx-0.5">'
-      + esc(text.slice(i, i+q.length))
-      + '</mark>'
-      + esc(text.slice(i+q.length));
-  }
+    // ── State ──
+    var tools = JSON.parse(overlay.dataset.tools || '[]');
+    var filtered = [];
+    var activeIdx = -1;
+    var isOpen = false;
+    var lastFocused = null;
 
-  // ── Open / Close ──
-  function open() {
-    isOpen = true;
-    overlay.removeAttribute('hidden');
-    document.body.style.overflow = 'hidden';
-    input.value = '';
-    filter('');
-    requestAnimationFrame(function() { input.focus(); });
-  }
-
-  function close() {
-    isOpen = false;
-    overlay.setAttribute('hidden', '');
-    document.body.style.overflow = '';
-    activeIdx = -1;
-    if (lastFocused) lastFocused.focus();
-  }
-
-  // ── Filter & render ──
-  function filter(query) {
-    var q = query.toLowerCase().trim();
-    filtered = q
-      ? tools.filter(function(t) {
-          return t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
-        })
-      : tools.slice();
-    activeIdx = filtered.length ? 0 : -1;
-    render();
-  }
-
-  function render() {
-    list.innerHTML = '';
-    if (!filtered.length) {
-      empty.classList.remove('hidden');
-      list.classList.add('hidden');
-      return;
+    // ── Helpers ──
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function hl(text, q) {
+      if (!q) return esc(text);
+      var i = text.toLowerCase().indexOf(q);
+      if (i < 0) return esc(text);
+      return esc(text.slice(0,i))
+        + '<mark class="rounded-sm bg-(--accent-soft) px-0.5 -mx-0.5 text-inherit">'
+        + esc(text.slice(i, i+q.length))
+        + '</mark>'
+        + esc(text.slice(i+q.length));
     }
-    empty.classList.add('hidden');
-    list.classList.remove('hidden');
-    var q = input.value.toLowerCase().trim();
 
-    filtered.forEach(function(tool, i) {
-      var li = document.createElement('li');
-      li.setAttribute('role', 'option');
-      li.setAttribute('aria-selected', i === activeIdx ? 'true' : 'false');
-      li.id = 'cp-item-' + i;
-      li.className = 'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors '
-        + (i === activeIdx
-          ? 'bg-blue-50 dark:bg-blue-900/30'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-700');
-      li.innerHTML
-        = '<span class="text-xl shrink-0" aria-hidden="true">' + tool.icon + '</span>'
-        + '<div class="min-w-0">'
-        + '<div class="text-sm font-medium text-gray-900 dark:text-gray-100">' + hl(tool.name, q) + '</div>'
-        + '<div class="truncate text-xs text-gray-500 dark:text-gray-400">' + hl(tool.description, q) + '</div>'
-        + '</div>';
-      li.addEventListener('click', function() { close(); window.location.href = tool.path; });
-      li.addEventListener('mouseenter', function() { activeIdx = i; paint(); });
-      list.appendChild(li);
-    });
-  }
-
-  function paint() {
-    list.querySelectorAll('[role="option"]').forEach(function(el, i) {
-      var active = i === activeIdx;
-      el.setAttribute('aria-selected', active ? 'true' : 'false');
-      el.classList.toggle('bg-blue-50', active);
-      el.classList.toggle('dark:bg-blue-900/30', active);
-      el.classList.toggle('hover:bg-gray-50', !active);
-      el.classList.toggle('dark:hover:bg-gray-700', !active);
-      if (active) el.scrollIntoView({ block: 'nearest' });
-    });
-  }
-
-  function moveCursor(dir) {
-    if (!filtered.length) return;
-    if (dir === 'up') {
-      activeIdx = activeIdx <= 0 ? filtered.length - 1 : activeIdx - 1;
-    } else {
-      activeIdx = activeIdx >= filtered.length - 1 ? 0 : activeIdx + 1;
+    // ── Open / Close ──
+    function open() {
+      isOpen = true;
+      overlay.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+      input.value = '';
+      filter('');
+      requestAnimationFrame(function() { input.focus(); });
     }
-    paint();
-  }
 
-  // ── Event binding ──
-  window.addEventListener('toggle-command-palette', function() {
-    isOpen ? close() : (lastFocused = document.activeElement, open());
-  });
-
-  input.addEventListener('input', function(e) { filter(e.target.value); });
-
-  input.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowDown') { e.preventDefault(); moveCursor('down'); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); moveCursor('up'); }
-    else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeIdx >= 0 && filtered[activeIdx]) { close(); window.location.href = filtered[activeIdx].path; }
+    function close() {
+      isOpen = false;
+      overlay.setAttribute('hidden', '');
+      document.body.style.overflow = '';
+      activeIdx = -1;
+      if (lastFocused) lastFocused.focus();
     }
-    else if (e.key === 'Escape') { e.preventDefault(); close(); }
-  });
 
-  backdrop.addEventListener('click', close);
+    // ── Filter & render ──
+    function filter(query) {
+      var q = query.toLowerCase().trim();
+      filtered = q
+        ? tools.filter(function(t) {
+            return t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
+          })
+        : tools.slice();
+      activeIdx = filtered.length ? 0 : -1;
+      render();
+    }
 
-  document.addEventListener('keydown', function(e) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
+    function itemClasses(active) {
+      return 'flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-2.5 transition-colors '
+        + (active
+          ? 'bg-(--accent-soft)'
+          : 'hover:bg-(--surface-2)');
+    }
+
+    function render() {
+      list.innerHTML = '';
+      if (!filtered.length) {
+        empty.classList.remove('hidden');
+        list.classList.add('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.classList.remove('hidden');
+      var q = input.value.toLowerCase().trim();
+
+      filtered.forEach(function(tool, i) {
+        var li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', i === activeIdx ? 'true' : 'false');
+        li.id = 'cp-item-' + i;
+        li.className = itemClasses(i === activeIdx);
+        li.innerHTML
+          = '<span class="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border" style="background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent-text)">'
+          + icon(tool.icon, 16)
+          + '</span>'
+          + '<div class="min-w-0">'
+          + '<div class="text-sm font-medium text-(--text-1)">' + hl(tool.name, q) + '</div>'
+          + '<div class="truncate text-xs dt-text-3">' + hl(tool.description, q) + '</div>'
+          + '</div>'
+          + (i === activeIdx
+            ? '<span class="ml-auto shrink-0 dt-text-3" aria-hidden="true">' + icon('arrow-right', 14) + '</span>'
+            : '');
+        li.addEventListener('click', function() { close(); window.location.href = tool.path; });
+        li.addEventListener('mouseenter', function() { activeIdx = i; paint(); });
+        list.appendChild(li);
+      });
+    }
+
+    function paint() {
+      list.querySelectorAll('[role="option"]').forEach(function(el, i) {
+        var active = i === activeIdx;
+        el.setAttribute('aria-selected', active ? 'true' : 'false');
+        el.className = itemClasses(active);
+      });
+      var active = list.querySelector('[role="option"][aria-selected="true"]');
+      if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+
+    function moveCursor(dir) {
+      if (!filtered.length) return;
+      if (dir === 'up') {
+        activeIdx = activeIdx <= 0 ? filtered.length - 1 : activeIdx - 1;
+      } else {
+        activeIdx = activeIdx >= filtered.length - 1 ? 0 : activeIdx + 1;
+      }
+      paint();
+    }
+
+    // ── Event binding ──
+    window.addEventListener('toggle-command-palette', function() {
       isOpen ? close() : (lastFocused = document.activeElement, open());
-    }
-  });
-})();
+    });
+
+    input.addEventListener('input', function(e) { filter(e.target.value); });
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveCursor('down'); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); moveCursor('up'); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIdx >= 0 && filtered[activeIdx]) { close(); window.location.href = filtered[activeIdx].path; }
+      }
+      else if (e.key === 'Escape') { e.preventDefault(); close(); }
+    });
+
+    backdrop.addEventListener('click', close);
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        isOpen ? close() : (lastFocused = document.activeElement, open());
+      }
+    });
+  })();
 </script>

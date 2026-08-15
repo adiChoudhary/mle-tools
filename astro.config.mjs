@@ -45,7 +45,7 @@ export default defineConfig({
       // Astro does not hash it, so pin its hash here. Recompute if that script
       // changes: sha256 of the exact script body.
       scriptDirective: {
-        hashes: ['sha256-j0iCfqWVpTvpHe0FYcNNXubToEMIPFd537hwo88NlZg='],
+        hashes: ['sha256-e9Sni8C3tLllyuHvEnqvzndFrSn70O4Oekhpy/MRnDw='],
       },
     },
   },

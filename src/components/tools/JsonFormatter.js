@@ -7,6 +7,7 @@ import { WorkerOperation } from "../../utils/worker-interface.ts";
 import { WorkerPool, withTimeout } from "../../utils/worker-pool.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 import DataProcessorWorkerUrl from "../../workers/data-processor.ts?worker&url";
 
 // Tree view safety caps (keep the main thread responsive on large inputs)
@@ -45,92 +46,90 @@ export class JsonFormatter {
       <div class="space-y-6">
         <!-- Input Section -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="json-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="json-input" class="dt-label">
               JSON Input
             </label>
-            <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-              <span id="input-size">0 bytes</span>
-              <span id="memory-status" class="hidden px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-xs">
+            <div class="flex items-center gap-2">
+              <span id="input-size" class="dt-meta">0 bytes</span>
+              <span id="memory-status" class="hidden rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400">
                 Memory limit exceeded
               </span>
             </div>
           </div>
           <textarea
             id="json-input"
-            class="w-full h-64 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focuser-transparent"
+            class="dt-field h-64"
             placeholder="Paste your JSON here..."
             spellcheck="false"
           ></textarea>
         </div>
 
         <!-- Format Controls -->
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
           <button
             id="beautify-btn"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn dt-btn-primary"
           >
             Beautify
           </button>
           <button
             id="minify-btn"
-            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn"
           >
             Minify
           </button>
           <button
             id="validate-btn"
-            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn"
           >
             Validate Only
           </button>
           <button
             id="tree-view-btn"
-            class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn"
           >
             Tree View
           </button>
           <button
             id="escape-btn"
-            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn"
           >
             Escape
           </button>
           <button
             id="unescape-btn"
-            class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn"
           >
             Unescape
           </button>
           <button
             id="compare-btn"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg
-                   disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            type="button"
+            class="dt-btn dt-btn-soft"
           >
             Compare Mode
           </button>
           <button
             id="clear-btn"
-            class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            type="button"
+            class="dt-btn dt-btn-ghost"
           >
             Clear
           </button>
 
           <!-- Indent Options -->
-          <div class="flex items-center space-x-2 ml-auto">
-            <label for="indent-select" class="text-sm text-gray-700 dark:text-gray-300">Indent:</label>
+          <div class="ml-auto flex items-center gap-2">
+            <label for="indent-select" class="text-[13px] dt-text-2">Indent:</label>
             <select
               id="indent-select"
-              class="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded
-                     bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              class="dt-field w-auto! px-2.5! py-1! text-[13px]!"
             >
               <option value="2">2 spaces</option>
               <option value="4">4 spaces</option>
@@ -141,47 +140,49 @@ export class JsonFormatter {
 
         <!-- Comparison Mode (initially hidden) -->
         <div id="compare-container" class="hidden space-y-4">
-          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">JSON Comparison Mode</h3>
-            <p class="text-sm text-blue-700 dark:text-blue-300 mb-4">
-              Compare two JSON objects to see the differences. The first input above is JSON A, enter JSON B below.
-            </p>
+          <div class="dt-box dt-box-info items-start!">
+            <span class="dt-accent">${icon('info', 18)}</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="mb-1 text-sm font-medium">JSON Comparison Mode</h3>
+              <p class="text-[13px] dt-text-2">
+                Compare two JSON objects to see the differences. The first input above is JSON A, enter JSON B below.
+              </p>
 
-            <div class="space-y-2">
-              <label for="json-compare-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                JSON B (for comparison)
-              </label>
-              <textarea
-                id="json-compare-input"
-                class="w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                       font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Paste second JSON here for comparison..."
-                spellcheck="false"
-              ></textarea>
-            </div>
+              <div class="mt-3 space-y-1.5">
+                <label for="json-compare-input" class="dt-label block">
+                  JSON B (for comparison)
+                </label>
+                <textarea
+                  id="json-compare-input"
+                  class="dt-field h-32"
+                  placeholder="Paste second JSON here for comparison..."
+                  spellcheck="false"
+                ></textarea>
+              </div>
 
-            <div class="flex items-center space-x-3 mt-4">
-              <button
-                id="run-compare-btn"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg
-                       disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                Compare JSONs
-              </button>
-              <button
-                id="exit-compare-btn"
-                class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-              >
-                Exit Compare Mode
-              </button>
+              <div class="mt-4 flex items-center gap-3">
+                <button
+                  id="run-compare-btn"
+                  type="button"
+                  class="dt-btn dt-btn-primary"
+                >
+                  Compare JSONs
+                </button>
+                <button
+                  id="exit-compare-btn"
+                  type="button"
+                  class="dt-btn"
+                >
+                  Exit Compare Mode
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Processing Indicator -->
         <div id="processing-indicator" class="hidden">
-          <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+          <div class="dt-accent flex items-center gap-2 text-[13px]">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -191,41 +192,35 @@ export class JsonFormatter {
         </div>
 
         <!-- Error Display -->
-        <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                JSON Error
-              </h3>
-              <p id="error-message" class="mt-1 text-sm text-red-700 dark:text-red-300"></p>
-            </div>
+        <div id="error-container" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <div>
+            <h3 class="text-sm font-medium text-red-700 dark:text-red-300">
+              JSON Error
+            </h3>
+            <p id="error-message" class="mt-0.5 text-[13px] text-red-600 dark:text-red-400"></p>
           </div>
         </div>
 
         <!-- Output Section -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label for="json-output" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label for="json-output" class="dt-label">
               Formatted Output
             </label>
-            <div class="flex items-center space-x-2">
-              <span id="output-size" class="text-sm text-gray-500 dark:text-gray-400">0 bytes</span>
+            <div class="flex items-center gap-2">
+              <span id="output-size" class="dt-meta">0 bytes</span>
               <button
                 id="copy-btn"
-                class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
-                       text-gray-700 dark:text-gray-300 rounded transition-colors"
+                type="button"
+                class="dt-btn dt-btn-sm"
               >
                 Copy
               </button>
               <button
                 id="download-btn"
-                class="px-3 py-1 text-sm bg-green-100 hover:bg-green-200 dark:bg-green-700 dark:hover:bg-green-600
-                       text-green-700 dark:text-green-300 rounded transition-colors"
+                type="button"
+                class="dt-btn dt-btn-sm"
               >
                 Download
               </button>
@@ -233,10 +228,9 @@ export class JsonFormatter {
           </div>
           <div
             id="json-output"
-            class="w-full min-h-64 max-h-96 overflow-auto px-3 py-2 border border-gray-300 dark:border-gray-700
-                   rounded-lg bg-gray-50 dark:bg-gray-800 font-mono text-sm"
+            class="dt-field min-h-64 max-h-96 overflow-auto"
           >
-            <div class="text-gray-500 dark:text-gray-400 italic">
+            <div class="dt-empty">
               Enter JSON above and click a format button to see the result here...
             </div>
           </div>
@@ -503,55 +497,61 @@ export class JsonFormatter {
 
   renderJsonTree(obj, level = 0) {
     const indent = '  '.repeat(level);
+    // Syntax palette (restrained, theme-aware)
+    const PUNCT = 'text-(--text-3)';
+    const KEY = 'dt-accent';
+    const STR = 'text-emerald-600 dark:text-emerald-400';
+    const NUM = 'text-amber-600 dark:text-amber-400';
+    const BOOL = 'text-fuchsia-600 dark:text-fuchsia-400';
 
     if (obj === null) {
-      return `<span class="text-gray-500">null</span>`;
+      return `<span class="text-(--text-3)">null</span>`;
     }
 
     if (typeof obj === 'string') {
-      return `<span class="text-green-600 dark:text-green-400">"${this.escapeHtml(obj)}"</span>`;
+      return `<span class="${STR}">"${this.escapeHtml(obj)}"</span>`;
     }
 
     if (typeof obj === 'number') {
-      return `<span class="text-blue-600 dark:text-blue-400">${obj}</span>`;
+      return `<span class="${NUM}">${obj}</span>`;
     }
 
     if (typeof obj === 'boolean') {
-      return `<span class="text-purple-600 dark:text-purple-400">${obj}</span>`;
+      return `<span class="${BOOL}">${obj}</span>`;
     }
 
     if (Array.isArray(obj)) {
       if (obj.length === 0) {
-        return `<span class="text-gray-600 dark:text-gray-400">[]</span>`;
+        return `<span class="${PUNCT}">[]</span>`;
       }
 
-      let html = `<span class="text-gray-600 dark:text-gray-400">[</span>\n`;
+      let html = `<span class="${PUNCT}">[</span>\n`;
       obj.forEach((item, index) => {
         html += `${indent}  ${this.renderJsonTree(item, level + 1)}`;
         if (index < obj.length - 1) {
-          html += `<span class="text-gray-600 dark:text-gray-400">,</span>`;
+          html += `<span class="${PUNCT}">,</span>`;
         }
         html += '\n';
       });
-      html += `${indent}<span class="text-gray-600 dark:text-gray-400">]</span>`;
+      html += `${indent}<span class="${PUNCT}">]</span>`;
       return html;
     }
 
     if (typeof obj === 'object') {
       const keys = Object.keys(obj);
       if (keys.length === 0) {
-        return `<span class="text-gray-600 dark:text-gray-400">{}</span>`;
+        return `<span class="${PUNCT}">{}</span>`;
       }
 
-      let html = `<span class="text-gray-600 dark:text-gray-400">{</span>\n`;
+      let html = `<span class="${PUNCT}">{</span>\n`;
       keys.forEach((key, index) => {
-        html += `${indent}  <span class="text-red-600 dark:text-red-400">"${this.escapeHtml(key)}"</span>: ${this.renderJsonTree(obj[key], level + 1)}`;
+        html += `${indent}  <span class="${KEY}">"${this.escapeHtml(key)}"</span>: ${this.renderJsonTree(obj[key], level + 1)}`;
         if (index < keys.length - 1) {
-          html += `<span class="text-gray-600 dark:text-gray-400">,</span>`;
+          html += `<span class="${PUNCT}">,</span>`;
         }
         html += '\n';
       });
-      html += `${indent}<span class="text-gray-600 dark:text-gray-400">}</span>`;
+      html += `${indent}<span class="${PUNCT}">}</span>`;
       return html;
     }
 
@@ -563,7 +563,7 @@ export class JsonFormatter {
 
     this.clearError();
     const escaped = JSON.stringify(this.currentInput);
-    this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap text-gray-900 dark:text-gray-100">${this.escapeHtml(escaped)}</pre>`;
+    this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap break-words">${this.escapeHtml(escaped)}</pre>`;
     this.currentOutput = escaped;
     this.outputSizeDisplay.textContent = this.formatBytes(new Blob([escaped]).size);
   }
@@ -589,7 +589,7 @@ export class JsonFormatter {
       }
     }
 
-    this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap text-gray-900 dark:text-gray-100">${this.escapeHtml(unescaped)}</pre>`;
+    this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap break-words">${this.escapeHtml(unescaped)}</pre>`;
     this.currentOutput = unescaped;
     this.outputSizeDisplay.textContent = this.formatBytes(new Blob([unescaped]).size);
   }
@@ -679,10 +679,8 @@ export class JsonFormatter {
 
     if (!diff.added.length && !diff.removed.length && !diff.changed.length) {
       this.outputContainer.innerHTML = `
-        <div class="flex items-center space-x-2 text-green-600 dark:text-green-400">
-          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
+        <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+          ${icon('check-circle', 18)}
           <span>Both JSON objects are identical.</span>
         </div>`;
       this.currentOutput = '';
@@ -692,27 +690,27 @@ export class JsonFormatter {
 
     const fmt = (v) => (typeof v === 'string' ? `"${v}"` : JSON.stringify(v));
     const text = [];
-    let html = '<ul class="space-y-1 text-sm">';
+    let html = '<ul class="space-y-1.5 text-[13.5px]">';
 
     diff.added.forEach(item => {
       text.push(`+ ${item.path}: ${fmt(item.value)}`);
-      html += `<li class="text-green-700 dark:text-green-300"><code class="font-mono">${this.escapeHtml(item.path)}</code> <span class="text-gray-500 dark:text-gray-400">added</span>: ${this.escapeHtml(fmt(item.value))}</li>`;
+      html += `<li class="text-emerald-700 dark:text-emerald-400"><code class="font-mono">${this.escapeHtml(item.path)}</code> <span class="dt-text-3">added</span>: ${this.escapeHtml(fmt(item.value))}</li>`;
     });
 
     diff.removed.forEach(item => {
       text.push(`- ${item.path}: ${fmt(item.value)}`);
-      html += `<li class="text-red-700 dark:text-red-300"><code class="font-mono">${this.escapeHtml(item.path)}</code> <span class="text-gray-500 dark:text-gray-400">removed</span>: ${this.escapeHtml(fmt(item.value))}</li>`;
+      html += `<li class="text-red-700 dark:text-red-400"><code class="font-mono">${this.escapeHtml(item.path)}</code> <span class="dt-text-3">removed</span>: ${this.escapeHtml(fmt(item.value))}</li>`;
     });
 
     diff.changed.forEach(item => {
       text.push(`~ ${item.path}: ${fmt(item.a)} -> ${fmt(item.b)}`);
-      html += `<li class="text-yellow-700 dark:text-yellow-300"><code class="font-mono">${this.escapeHtml(item.path)}</code> <span class="text-gray-500 dark:text-gray-400">changed</span>: ${this.escapeHtml(fmt(item.a))} &rarr; ${this.escapeHtml(fmt(item.b))}</li>`;
+      html += `<li class="text-amber-700 dark:text-amber-400"><code class="font-mono">${this.escapeHtml(item.path)}</code> <span class="dt-text-3">changed</span>: ${this.escapeHtml(fmt(item.a))} &rarr; ${this.escapeHtml(fmt(item.b))}</li>`;
     });
 
     html += '</ul>';
 
     this.outputContainer.innerHTML = `
-      <div class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div class="dt-label mb-2.5">
         ${diff.added.length} added, ${diff.removed.length} removed, ${diff.changed.length} changed
       </div>
       ${html}`;
@@ -728,15 +726,13 @@ export class JsonFormatter {
 
     if (operation === 'validate') {
       this.outputContainer.innerHTML = `
-        <div class="flex items-center space-x-2 text-green-600 dark:text-green-400">
-          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
+        <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+          ${icon('check-circle', 18)}
           <span>Valid JSON (${this.formatBytes(result.size)})</span>
         </div>
       `;
     } else {
-      this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap text-gray-900 dark:text-gray-100">${this.escapeHtml(result.result)}</pre>`;
+      this.outputContainer.innerHTML = `<pre class="whitespace-pre-wrap break-words">${this.escapeHtml(result.result)}</pre>`;
     }
 
     this.currentOutput = result.result;
@@ -755,7 +751,7 @@ export class JsonFormatter {
 
   clearOutput() {
     this.outputContainer.innerHTML = `
-      <div class="text-gray-500 dark:text-gray-400 italic">
+      <div class="dt-empty">
         Enter JSON above and click a format button to see the result here...
       </div>
     `;
@@ -785,11 +781,11 @@ export class JsonFormatter {
       // Visual feedback
       const originalText = this.copyBtn.textContent;
       this.copyBtn.textContent = 'Copied!';
-      this.copyBtn.classList.add('text-green-600');
+      this.copyBtn.classList.add('dt-accent');
 
       setTimeout(() => {
         this.copyBtn.textContent = originalText;
-        this.copyBtn.classList.remove('text-green-600');
+        this.copyBtn.classList.remove('dt-accent');
       }, 2000);
 
     } catch (error) {

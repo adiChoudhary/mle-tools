@@ -6,6 +6,7 @@
 import { generateHash } from "../../utils/crypto.ts";
 import { checkMemoryLimit } from "../../utils/memory.ts";
 import { escapeHtml } from "../../utils/escape-html.ts";
+import { icon } from "../../utils/icons.ts";
 
 export class HashGenerator {
   constructor(element) {
@@ -23,17 +24,17 @@ export class HashGenerator {
     this.element.innerHTML = `
       <div class="space-y-6">
         <!-- Algorithm Selection -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Hash Algorithm</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button id="alg-md5" class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" data-alg="MD5">MD5</button>
-            <button id="alg-sha1" class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 hover:border-blue-400" data-alg="SHA-1">SHA-1</button>
-            <button id="alg-sha256" class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 hover:border-blue-400" data-alg="SHA-256">SHA-256</button>
-            <button id="alg-sha512" class="px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 hover:border-blue-400" data-alg="SHA-512">SHA-512</button>
+        <div class="dt-panel p-4">
+          <h3 class="dt-label mb-3">Hash Algorithm</h3>
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <button id="alg-md5" class="dt-alg-btn dt-alg-btn-active" data-alg="MD5">MD5</button>
+            <button id="alg-sha1" class="dt-alg-btn" data-alg="SHA-1">SHA-1</button>
+            <button id="alg-sha256" class="dt-alg-btn" data-alg="SHA-256">SHA-256</button>
+            <button id="alg-sha512" class="dt-alg-btn" data-alg="SHA-512">SHA-512</button>
           </div>
-          <div class="mt-3 flex items-center space-x-3">
-            <label class="inline-flex items-center text-sm text-gray-700 dark:text-gray-300">
-              <input type="checkbox" id="all-algs" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 mr-2">
+          <div class="mt-3.5 flex items-center gap-3">
+            <label class="flex cursor-pointer items-center gap-2 text-[13px] dt-text-2">
+              <input type="checkbox" id="all-algs" class="h-3.5 w-3.5 rounded">
               Generate all algorithms at once
             </label>
           </div>
@@ -41,19 +42,19 @@ export class HashGenerator {
 
         <!-- Input -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="hash-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Input Data</label>
-            <div class="flex items-center space-x-2">
-              <span id="input-size" class="text-sm text-gray-500 dark:text-gray-400">0 bytes</span>
-              <button id="load-sample-btn" class="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors">Load Sample</button>
-              <button id="clear-btn" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">Clear</button>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="hash-input" class="dt-label">Input Data</label>
+            <div class="flex items-center gap-2">
+              <span id="input-size" class="dt-meta">0 bytes</span>
+              <button id="load-sample-btn" type="button" class="dt-btn dt-btn-soft dt-btn-sm">Load Sample</button>
+              <button id="clear-btn" type="button" class="dt-btn dt-btn-sm">Clear</button>
             </div>
           </div>
-          <textarea id="hash-input" class="w-full h-40 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter text to hash (hashes update in real-time)..." spellcheck="false"></textarea>
+          <textarea id="hash-input" class="dt-field h-40" placeholder="Enter text to hash (hashes update in real-time)..." spellcheck="false"></textarea>
         </div>
 
         <!-- Processing indicator -->
-        <div id="processing" class="hidden flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+        <div id="processing" class="dt-accent hidden flex items-center gap-2 text-[13px]">
           <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -62,23 +63,27 @@ export class HashGenerator {
         </div>
 
         <!-- Error -->
-        <div id="error-container" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p id="error-message" class="text-sm text-red-700 dark:text-red-300"></p>
+        <div id="error-container" class="dt-box dt-box-error hidden">
+          <span class="text-red-500 dark:text-red-400">${icon('alert-circle', 18)}</span>
+          <p id="error-message" class="text-[13px] text-red-600 dark:text-red-400"></p>
         </div>
 
         <!-- Hash Output -->
         <div id="hash-output" class="space-y-4">
-          <div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter text above to see the hash...</div>
+          <div class="dt-empty text-sm">Enter text above to see the hash...</div>
         </div>
 
         <!-- Info -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">About Hash Algorithms</h3>
-          <div class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-            <p><strong>MD5</strong> (128-bit): Fast but cryptographically broken. Use only for checksums, not security.</p>
-            <p><strong>SHA-1</strong> (160-bit): Deprecated for security use. Collisions have been demonstrated.</p>
-            <p><strong>SHA-256</strong> (256-bit): Current standard for security. Used in TLS, Git, cryptocurrencies.</p>
-            <p><strong>SHA-512</strong> (512-bit): Strongest option. Better performance on 64-bit systems.</p>
+        <div class="dt-box dt-box-info items-start!">
+          <span class="dt-accent">${icon('info', 18)}</span>
+          <div>
+            <h3 class="mb-2 text-sm font-medium">About Hash Algorithms</h3>
+            <div class="space-y-1 text-[13px] dt-text-2">
+              <p><strong>MD5</strong> (128-bit): Fast but cryptographically broken. Use only for checksums, not security.</p>
+              <p><strong>SHA-1</strong> (160-bit): Deprecated for security use. Collisions have been demonstrated.</p>
+              <p><strong>SHA-256</strong> (256-bit): Current standard for security. Used in TLS, Git, cryptocurrencies.</p>
+              <p><strong>SHA-512</strong> (512-bit): Strongest option. Better performance on 64-bit systems.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -130,7 +135,7 @@ export class HashGenerator {
       this.inputTextarea.value = '';
       this.currentInput = '';
       this.inputSizeDisplay.textContent = '0 bytes';
-      this.hashOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter text above to see the hash...</div>';
+      this.hashOutput.innerHTML = '<div class="dt-empty text-sm">Enter text above to see the hash...</div>';
       this.clearError();
     });
 
@@ -145,17 +150,14 @@ export class HashGenerator {
   updateAlgorithmUI() {
     this.algorithmButtons.forEach(btn => {
       const active = btn.dataset.alg === this.selectedAlgorithm;
-      btn.className = `px-4 py-2.5 text-sm font-medium rounded-lg border-2 transition-all ${active
-        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 hover:border-blue-400'
-      }`;
+      btn.className = active ? 'dt-alg-btn dt-alg-btn-active' : 'dt-alg-btn';
     });
   }
 
   async hashInput() {
     const input = this.inputTextarea.value;
     if (!input) {
-      this.hashOutput.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">Enter text above to see the hash...</div>';
+      this.hashOutput.innerHTML = '<div class="dt-empty text-sm">Enter text above to see the hash...</div>';
       return;
     }
 
@@ -199,18 +201,18 @@ export class HashGenerator {
     };
 
     for (const [alg, hash] of Object.entries(hashes)) {
-      const color = dotColors[alg] || 'bg-blue-500';
+      const color = dotColors[alg] || 'bg-violet-500';
       html += `
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center space-x-2">
-              <span class="inline-block w-2 h-2 rounded-full ${color}"></span>
-              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">${alg}</h4>
-              <span class="text-xs text-gray-500 dark:text-gray-400">${alg === 'MD5' ? '128-bit' : alg === 'SHA-1' ? '160-bit' : alg === 'SHA-256' ? '256-bit' : '512-bit'}</span>
+        <div class="dt-card p-4">
+          <div class="mb-2 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-block h-2 w-2 rounded-full ${color}"></span>
+              <h4 class="text-sm font-medium">${alg}</h4>
+              <span class="dt-meta">${alg === 'MD5' ? '128-bit' : alg === 'SHA-1' ? '160-bit' : alg === 'SHA-256' ? '256-bit' : '512-bit'}</span>
             </div>
-            <button class="copy-hash-btn px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded transition-colors" data-hash="${this.escapeHtml(hash)}">Copy</button>
+            <button class="copy-hash-btn dt-btn dt-btn-sm py-0.5! px-2.5! text-xs!" data-hash="${this.escapeHtml(hash)}">Copy</button>
           </div>
-          <p class="font-mono text-sm text-gray-900 dark:text-gray-100 break-all">${hash}</p>
+          <p class="break-all font-mono text-[13px]">${hash}</p>
         </div>
       `;
     }
@@ -224,16 +226,16 @@ export class HashGenerator {
     const bitLength = algorithm === 'MD5' ? 128 : algorithm === 'SHA-1' ? 160 : algorithm === 'SHA-256' ? 256 : 512;
 
     this.hashOutput.innerHTML = `
-      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center space-x-2">
-            <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">${algorithm}</h4>
-            <span class="text-xs text-gray-500 dark:text-gray-400">${bitLength}-bit</span>
+      <div class="dt-card p-4">
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full bg-violet-500"></span>
+            <h4 class="text-sm font-medium">${algorithm}</h4>
+            <span class="dt-meta">${bitLength}-bit</span>
           </div>
-          <button class="copy-hash-btn px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded transition-colors" data-hash="${this.escapeHtml(hash)}">Copy</button>
+          <button class="copy-hash-btn dt-btn dt-btn-sm py-0.5! px-2.5! text-xs!" data-hash="${this.escapeHtml(hash)}">Copy</button>
         </div>
-        <p class="font-mono text-sm text-gray-900 dark:text-gray-100 break-all">${hash}</p>
+        <p class="break-all font-mono text-[13px]">${hash}</p>
       </div>
     `;
 
